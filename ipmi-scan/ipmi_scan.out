@@ -1,0 +1,51 @@
+ipmi-scan.pl(1)                                            ipmi-scan.pl Man Page                                            ipmi-scan.pl(1)
+
+
+
+NAME
+       ipmi-scan.pl - Simple IPMI Scanner
+
+SYNOPSIS
+       ipmi-scan.pl [options] target-specification
+
+DESCRIPTION
+       ipmi-scan.pl scans IP networks for signs of hosts running Intelligent Platform Management Interface (IMPI.)  ipmi-scan.pl leverages
+       two open source programs to look for traces of IPMI on a network: Nmap, the most popular network security scanner in the world, and
+       ipmiping, a program designed specifically to use the IPMI protocol to ask a remote system is running it or not.
+
+       As with Nmap, everything on the command-line that isn't an option (or option argument) is treated as a target host specification.
+       The simplest case is to specify a target IP address or hostname for scanning.  Look at the Nmap documentation for a full description
+       of the many options.
+
+
+OPTIONS SUMMARY
+       -A Scan with all the vendor options set.  If used it ignores the -V option.
+
+       -h, --help
+           Show a help message and exit.
+
+       -O value
+           for OS scanning... values can be either "yes" or "high"; high simply does more aggressive scanning.  Defaults to not scanning
+           OS... but maybe should change this.
+
+       --tcp --udp
+           By default ipmi-scan.pl scans all ports that is knows about.  However, UDP scanning is about as a fast and fun as watching paint
+           dry.  If you specify both of these there will be no change to the default behavior; both udp & tcp will run.  Specifying only
+           one of them says scan that proto’s ports; let me assure you under normal circumstances --tcp will speed things up, but you won’t
+           see the UDP stuff... this may or may not matter, depending on what you’re looking for, doing, etc.
+
+       -v, --verbose
+           Increase verbosity of the output.
+
+       -version
+           Show the version number and exit.
+
+
+BUGS
+       It’s inconceivable that my programs would ever have errors.  But if you’re convinced they do, feel free to send things to
+       zen@trouble.org so I can point out the error of your ways.  Or perhaps more likely, mine.
+
+
+
+
+ipmi-scan.pl                                                     04/16/2013                                                 ipmi-scan.pl(1)

@@ -1,0 +1,1 @@
+Successful ipmi-ping: response received from 192.168.0.69: rq_seq=41, auth: none=clear md2=set md5=set password=clear oem=set anon=clear null=clear non-null=set user=clear permsg=clear 
