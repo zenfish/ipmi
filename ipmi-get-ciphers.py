@@ -26,7 +26,7 @@ PORT     = 623   # udp
 verbose = False
 
 arg_string = "t:v"
-arg_usage  = "[-t timeout] [-v] [-version] [-h|--help]target"
+arg_usage  = "[-t timeout] [-v] [-version] [-h|--help] target"
 usage      = "Usage: %s %s" % (sys.argv[0], arg_usage)
 
 try:
@@ -40,7 +40,7 @@ except getopt.GetoptError as err:
 for opt, argh in opts:
 
     if opt == "-t":
-        timeout = argh
+        timeout = int(argh)
 
     elif opt == "-v":
         verbose = True
@@ -201,96 +201,95 @@ def build_me_a_rocket(offset):
     return(payload)
 
 #
-# create socket & bind
+# attemp to create socket, bind & send
 #
+try:
 
-udp  = socket(AF_INET, SOCK_DGRAM)
-sake = udp.getsockname()
-udp.bind(sake)
-udp.settimeout(timeout)
-
-auth     = ""
-integ    = ""
-conf     = ""
-payload  = ""
-all_data = ""
-data     = ""
-
-n       = 0
-offset  = 0x00
-
-#
-# finally... actually send packets
-#
-# I should really just keep sending them until I get
-# an error or to the end... but I don't trust me and the target ;)
-# this should get pretty much all of the data
-#
-for i in range(1,16):
-
-        n = n + 1
-
-        if verbose:
-            print('building and sending packet %d' % i)
-
-        #
-        # set off that rocket
-        #
-        try:
-            payload = build_me_a_rocket(offset)
-
-        except Exception, e:
-            print("hmmm.... problems in paradise, tonto: %s, bailin'" % e)
-            sys.exit(3)
-
-        # if udp.sendto(" ", (target, PORT)) <= 0:
-        if udp.sendto(payload, (target, PORT)) <= 0:
-            print("couldn't send packet to %s" % target)
-
-        # catch response
-        data,addr = udp.recvfrom(512)
-
-        # skip the header
-        data = binascii.hexlify(data[20:])
-
-        # print(data)
-
-        # chop the crc
-        data = data[:-2]
-
-        completion_code = data[0:2]
-        channel         = data[2:4]
-
-        if completion_code == "c1":
-            print("The remote system doesn't appear to support the Get Channel Cipher Suites command")
-            sys.exit(2)
-
-        # minus completion code and channel #
-        all_data = all_data + data[4:]
-
-        if verbose:
-            print('chunk [%d]: %s' % (n, data[4:]))
-
-        if len(data) != 36:
-            # print('remote out of data %d' % len(data))
+    udp  = socket(AF_INET, SOCK_DGRAM)
+    sake = udp.getsockname()
+    udp.bind(sake)
+    udp.settimeout(timeout)
+    
+    auth     = ""
+    integ    = ""
+    conf     = ""
+    payload  = ""
+    all_data = ""
+    data     = ""
+    
+    n       = 0
+    offset  = 0x00
+    
+    #
+    # finally... actually send packets
+    #
+    # I should really just keep sending them until I get
+    # an error or to the end... but I don't trust me and the target ;)
+    # this should get pretty much all of the data
+    #
+    for i in range(1,16):
+    
+            n = n + 1
+    
             if verbose:
-                print('all data received (%d bytes): %s' % (len(all_data), all_data))
-            break
+                print('building and sending packet %d' % i)
+    
+            #
+            # set off that rocket
+            #
+            payload = build_me_a_rocket(offset)
+    
+            # if udp.sendto(" ", (target, PORT)) <= 0:
+            if udp.sendto(payload, (target, PORT)) <= 0:
+                print("couldn't send packet to %s" % target)
+    
+            # catch response
+            data,addr = udp.recvfrom(512)
+    
+            # skip the header
+            data = binascii.hexlify(data[20:])
+    
+            # print(data)
+    
+            # chop the crc
+            data = data[:-2]
+    
+            completion_code = data[0:2]
+            channel         = data[2:4]
+    
+            if completion_code == "c1":
+                print("The remote system doesn't appear to support the Get Channel Cipher Suites command")
+                sys.exit(2)
+    
+            # minus completion code and channel #
+            all_data = all_data + data[4:]
+    
+            if verbose:
+                print('chunk [%d]: %s' % (n, data[4:]))
+    
+            if len(data) != 36:
+                # print('remote out of data %d' % len(data))
+                if verbose:
+                    print('all data received (%d bytes): %s' % (len(all_data), all_data))
+                break
+    
+            # print data + '   <---'
+    
+            # print "CC:   %s" % completion_code
+            # print "Chan: %s" % channel
+    
+            offset = offset + 0x01
+    
+    udp.close()
 
-        # print data + '   <---'
-
-        # print "CC:   %s" % completion_code
-        # print "Chan: %s" % channel
-
-        offset = offset + 0x01
-
-udp.close()
+except Exception, e:
+    print("hmmm.... problems in paradise, tonto: %s, bailin'" % e)
+    sys.exit(3)
 
 #
 # got the data... part II, parse it!
 #
 
-N_spaces = 10
 OEM       = ""
 cipher_id = ""
 nibble    = ""
@@ -311,11 +310,24 @@ all_cids.add("")
 authentication = ""
 integrity      = ""
 encryption     = ""
+IANA_id        = "N/A"
 
 n = 0
 
-print("ID\tAuth Alg\tIntegrity Alg\tConfidentiality Alg")
 
+#
+#
+#
+def print_line (cid):
+    # ID     IANA       Auth Alg  Integrity Alg Confidentiality Alg
+    cid = str(int(cid,16)).ljust(5, ' ')
+    print(cid + IANA_id.ljust(8, ' ') + authentication.ljust(16, ' ') + integrity.ljust(17, ' ') + encryption)
+
+
+# header line
+print("ID   IANA    Auth Alg        Integrity Alg   Confidentiality Alg")
+
+# loop over output 2 chars at a time
 while n < bytes:
     # print (n)
     n_byte = n * 2
@@ -334,13 +346,13 @@ while n < bytes:
 
         # if cipher_id not in all_cids and all_cids:
         if last_cipher not in all_cids and authentication != "" and integrity != "" and encryption != "" :
-            print(int(last_cipher,16)),
-            print('\t' + authentication + '\t' + integrity + '\t' + encryption)
+            print_line(last_cipher)
             all_cids.add(last_cipher)
 
         authentication = ""
         integrity      = ""
         encryption     = ""
+        IANA_id        = "N/A"
 
         n = n + 1
         continue
@@ -350,15 +362,14 @@ while n < bytes:
         last_cipher = cipher_id
 
         OEM = all_data[n_byte+2:n_byte+5]
-        print('OEM => ' + OEM)
-        print('\tskipping ahead 3 bytes')
+        # print('Not tested - OEM => ' + OEM)
+        # print('\tskipping ahead 3 bytes')
 
-        cipher_id = all_data[n_byte+5:n_byte+7]
+        IANA_id = all_data[n_byte+5:n_byte+7]
 
         # if cipher_id not in all_cids and all_cids:
         if last_cipher not in all_cids and authentication != "" and integrity != "" and encryption != "" :
-            print(int(last_cipher,16)),
-            print('\t' + authentication + '\t' + integrity + '\t' + encryption)
+            print_line(last_cipher)
             all_cids.add(last_cipher)
 
         all_cids.add(cipher_id)
@@ -374,7 +385,7 @@ while n < bytes:
     if nibble[0] == "0":
         alg = int(nibble[1],16) & 0x3F
         if authentication == "":
-            authentication = ipmi_auth_algorithms[str(alg)].ljust(N_spaces, ' ')
+            authentication = ipmi_auth_algorithms[str(alg)]
         # can't have more than one auth
         elif verbose:
             print('warning... multiple auth fields...?\tAuth: ' + ipmi_auth_algorithms[str(alg)])
@@ -387,14 +398,14 @@ while n < bytes:
     elif nibble[0] == "4":
         alg = int(nibble[1],16) & 0x3F
         if integrity == "":
-            integrity = ipmi_integrity_algorithms[str(alg)].ljust(N_spaces, ' ')
+            integrity = ipmi_integrity_algorithms[str(alg)]
         elif verbose:
             print('warning... multiple integrity fields...?\tIntegrity: ' + ipmi_integrity_algorithms[str(alg)])
 
     elif nibble[0] == "8":
         alg = int(nibble[1],16) & 0x3F
         if encryption == "":
-            encryption = ipmi_encryption_algorithms[str(alg)].ljust(N_spaces, ' ')
+            encryption = ipmi_encryption_algorithms[str(alg)]
         elif verbose:
             print('warning... multiple encryption fields...?\tEncryption: ' + ipmi_encryption_algorithms[str(alg)])
 
@@ -404,8 +415,7 @@ while n < bytes:
         n_record = 0
 
 if cipher_id not in all_cids and authentication != "" and integrity != "" and encryption != "" :
-    print(int(cipher_id,16)),
-    print('\t' + authentication  + '\t' + integrity + '\t' + encryption)
+    print_line(cipher_id)
 
 sys.exit(0)
 
