@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-# do a Get Channel Cipher Suites command
+# do an unauthenticated Get Channel Cipher Suites command
 
 #
 # Options:
