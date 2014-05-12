@@ -11,6 +11,8 @@
 #  -h/--help            help
 #
 
+# zen@fish2.com, Mon May 12 11:53:22 PDT 2014
+
 from   socket import *
 
 import getopt
