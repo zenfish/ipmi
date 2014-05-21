@@ -7,11 +7,25 @@ out to be fairly interesting problem on its own, at least to me.
 
 <h4>Password Cracking</h4>
 
-Here's a <a href="rak-the-ripper.pl">little Perl program</a> 
+Here's a <a href="rak-the-ripper.pl"> little Perl program</a> 
 that tries to guess an account on a remote BMC, extract its hash,
 and then try to crack its (HMAC hashed) password.  I wrote up a
 <a href="http://fish2.com/ipmi/remote-pw-cracking.html">little</a>
 bit on this for the curious.  Heavily commented, it may provide some utility.
+
+<h4> Get ciphers</h4>
+
+The IPMI spec says that you can get a remote system's cipher without any
+authentication, but I'm not aware of any tool that actually does this
+(they all require auth, although of course you could input the raw hex
+bytes if you wanted!)  So I wrote this little one to do so; it mostly
+tries to follow the ipmitool output; in doing so I believe I found a
+bug in that utility (in the final line *sometimes* systems emit some 
+garbage that appears to be misinterpreted), but who knows, I don't have
+enough systems to test.  Anyway...  <a href="ipmi-get-ciphers.py">
+
+If nothing else, useful for spotting Cipher0 systems, but there are 
+interesting things out there.....
 
 <h4>Detection</h4>
 
