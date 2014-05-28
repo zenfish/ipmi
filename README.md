@@ -24,8 +24,10 @@ bug in that utility (in the final line *sometimes* systems emit some
 garbage that appears to be misinterpreted), but who knows, I don't have
 enough systems to test.  Anyway...  <a href="ipmi-get-ciphers.py">ipmi-get-ciphers.py</a>.
 
-If nothing else, useful for spotting Cipher0 systems, but there are 
-interesting things out there.....
+If nothing else, useful for spotting Cipher0 systems (note - this
+merely points out ciphers that are supported - it doesn't mean that
+they're actually turned on), but there are interesting things out
+there.....
 
 <h4>Detection</h4>
 
