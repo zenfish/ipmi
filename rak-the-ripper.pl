@@ -148,8 +148,7 @@ print "Started at " . `date` if $verbose;
 # anything > 0 and <= 20 characters would work here; ipmitool simply needs something
 $pass = "fluffy-wuffy-bunny!!";
 
-
-print("DEBUG:" . $debug . "\n");
+# print("DEBUG:" . $debug . "\n");
 
 #
 # Need some passwords to guess... either from file or some defaults I made up
@@ -281,8 +280,6 @@ for $user (@users) {
 
    $name_found = 1;
 
-   print "Found valid user: $user\n" if $verbose;
-
    # after this, no need to continue with other users
    # @users = ();
 
@@ -302,7 +299,13 @@ for $user (@users) {
 
    print "(debug - packing from:$input:)\n" if $debug;
 
-   print "... searching for HMAC match for $user ($hashy)\n" if $verbose;
+   print "$target\taccount: $hashy\t$user";
+
+   if (defined($all_hashes{$hashy})) { print "\t(Previously seen hash)"; }
+
+   $all_hashes{$hashy} = $hashy;
+
+   print("\n");
 
    $cracked = 0;
    # curiosity ;)
