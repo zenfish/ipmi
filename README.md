@@ -26,8 +26,9 @@ enough systems to test.  Anyway...  <a href="ipmi-get-ciphers.py">ipmi-get-ciphe
 
 If nothing else, useful for spotting Cipher0 systems (note - this
 merely points out ciphers that are supported - it doesn't mean that
-they're actually turned on), but there are interesting things out
-there.....
+they're actually turned on), but there are interesting things out in
+the wild.
+
 
 <h4>Detection</h4>
 
