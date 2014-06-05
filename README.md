@@ -36,7 +36,7 @@ Supermicro has had some issues with password file disclosure from
 their BMC - for instance, see this and other write-ups:
 
 <blockquote>
-     <a href="https://community.rapid7.com/community/metasploit/blog/2013/07/02/a-penetration-testers-guide-to-ipmi">a-penetration-testers-guide-to-ipmi</a>
+     <a target="_blank" href="https://community.rapid7.com/community/metasploit/blog/2013/07/02/a-penetration-testers-guide-to-ipmi">a-penetration-testers-guide-to-ipmi</a>
 </blockquote>
 
 To use this script simply say:
