@@ -43,7 +43,7 @@ To use this script simply say:
 
 
 <blockquote>
-    Usage: <a href="dump_SM.py">dump_SM.py</a> password_file
+    <a href="dump_SM.py">dump_SM.py</a> password_file
 </blockquote>
 
 
