@@ -35,11 +35,15 @@ the wild.
 Supermicro has had some issues with password file disclosure from
 their BMC - for instance, see this and other write-ups:
 
+
      https://community.rapid7.com/community/metasploit/blog/2013/07/02/a-penetration-testers-guide-to-ipmi)
+
 
 To use this script simply say:
 
+
     Usage: <a href="dump_SM.py">dump_SM.py</a> password_file
+
 
 Works for me, no warranty implied, guaranteed, etc.
 
