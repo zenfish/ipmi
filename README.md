@@ -39,7 +39,7 @@ their BMC - for instance, see this and other write-ups:
 
 To use this script simply say:
 
-    Usage: dump_SM.py password_file
+    Usage: <a href="dump_SM.py">dump_SM.py</a> password_file
 
 Works for me, no warranty implied, guaranteed, etc.
 
