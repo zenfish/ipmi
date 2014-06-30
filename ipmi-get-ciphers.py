@@ -79,6 +79,12 @@ IPMI_AUTH_RAKP_NONE        = "0"
 IPMI_AUTH_RAKP_HMAC_SHA1   = "1"
 IPMI_AUTH_RAKP_HMAC_MD5    = "2"
 IPMI_AUTH_RAKP_HMAC_SHA256 = "3"    # not in ipmitool???
+IPMI_AUTH_4                = "4"
+IPMI_AUTH_5                = "5"
+IPMI_AUTH_6                = "6"
+IPMI_AUTH_7                = "7"
+IPMI_AUTH_8                = "8"
+IPMI_AUTH_9                = "9"
 
 #
 # From table 13-18 of the IPMI spec
@@ -88,6 +94,7 @@ IPMI_INTEGRITY_HMAC_SHA1_96    = "1"
 IPMI_INTEGRITY_HMAC_MD5_128    = "2"
 IPMI_INTEGRITY_MD5_128         = "3"
 IPMI_INTEGRITY_HMAC_SHA256_128 = "4"   # not in ipmitool
+
 #
 # From table 13-19 of the IPMI v2 specfication
 #
@@ -103,6 +110,7 @@ ipmi_auth_algorithms = {
       IPMI_AUTH_RAKP_HMAC_SHA256 : "hmac-sha256",
       # "00" : "NULL"
 }
+
 ipmi_integrity_algorithms = {
       IPMI_INTEGRITY_NONE            : "none",
       IPMI_INTEGRITY_HMAC_SHA1_96    : "hmac-sha1-96",
@@ -258,7 +266,8 @@ try:
             channel         = data[2:4]
     
             if completion_code == "c1":
-                print("The remote system doesn't appear to support the Get Channel Cipher Suites command")
+                sys.stderr.write("The remote system doesn't appear to support the Get Channel Cipher Suites command\n")
+                # print("The remote system doesn't appear to support the Get Channel Cipher Suites command")
                 sys.exit(2)
     
             # minus completion code and channel #
@@ -283,7 +292,7 @@ try:
     udp.close()
 
 except Exception, e:
-    print("hmmm.... problems in paradise, tonto: %s, bailin'" % e)
+    sys.stderr.write("hmmm.... problems in paradise, tonto: %s, bailin'" % e)
     sys.exit(3)
 
 #

@@ -207,8 +207,10 @@ sub guesswork() {
    # $stuff = pack 'C*', map hex, @input;
    # print hmac_sha1_hex($stuff,$pass) . "\n";
    # print "... 0x" . hmac_sha1_hex($stuff,$guess) . "\n";
+   # print "SvG: $stuff !=? $guess\n";
+
    if ("0x" . hmac_sha1_hex($stuff,$guess) eq $hashy) {
-      print "...cracked in $n guess$guess_suffix...\n\nPassword for $user is $guess\n\n";
+      print "...cracked in $n guess$guess_suffix...\n\nPassword for $user is \"$guess\"\n\n";
       $cracked = 1;
       return 1;
    }
@@ -268,7 +270,9 @@ for $user (@users) {
          goto scan_again;  # testing... could be infinite loop...
       }
       else {
-         print "interesting... insufficient resources... try again with a delay between requests ('-D N-secs' option will do this)?\n" if $verbose;
+         if ($verbose) { 
+            print "interesting... insufficient resources... try again with a delay between requests ('-D N-secs' option will do this)?\n";
+         }
       next;
       }
    }
@@ -280,6 +284,9 @@ for $user (@users) {
 
    $name_found = 1;
 
+   print "Found valid user: $user\n" if $verbose;
+
+
    # after this, no need to continue with other users
    # @users = ();
 
@@ -287,7 +294,9 @@ for $user (@users) {
    ($hashy = $stdout) =~ m/^.*<<  Key exchange auth code \[sha1\] : ([^\s]+).*$/m;
    $hashy  = $1;
 
-   if ($hashy eq "") { print "couldn't find an auth code, skipping\n" if $verbose; next; }
+   print "... searching for HMAC match for $user\n" if $verbose;
+
+   if ($hashy eq "") { print "\tcouldn't find an auth code, skipping\n" if $verbose; next; }
 
    ($input = $stderr) =~ m/^.*>> rakp2 mac input buffer \(\d+ bytes\) ([^>]+)>>.*$/m;
    $input  = $1;
