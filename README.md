@@ -244,10 +244,10 @@ UDP port 623 to work.  Usage is simply "ipmi-get-auth.py target".
    <a href="http://trouble.org/?p=712">A very small description</a> </span><br />
 </p> <p>
 
-Taking this to extremes... well, here's a sort of mega version of the above that
-does it for all channels, all privs, all... well, you get the drift. For the
-monomaniacal (read comments to see why it does what it does!)
-
+Taking this to extremes... well, here's a sort of mega version of
+the above that does it for all channels, all privs, all... well,
+you get the drift. For the monomaniacal (read comments or the post
+I wrote about it to see why it does what it does!)
 
 <p style="padding-left:60px;">
    <span style="padding: 5px; border: 1px solid #AAA;"> <a href="mega_chan.py">mega_chan.py</a> /
