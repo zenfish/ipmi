@@ -29,6 +29,37 @@ merely points out ciphers that are supported - it doesn't mean that
 they're actually turned on), but there are interesting things out in
 the wild.
 
+<h4> Get authentication details </h4>
+
+Two programs here, one is a simple Python
+remote prober (starting to hate Perl, let me tell you) and a second
+that uses utilities from <a href="http://www.gnu.org/software/freeipmi/">FreeIPMI</a>
+to grab credentialed configuration data.
+
+</p> <p>
+
+A small python program (over 50% inline comments, 2.5k gzip'd) that sends a single packet 
+to a BMC and mulls over the response.  What can you do with only a single packet, one 
+might ask?  10+ different security tests for IPMI, for starters.  Well, for starters 
+and for enders, it's only a packet :)  Requires python, a BMC and an open path to 
+UDP port 623 to work.  Usage is simply "ipmi-get-auth.py target".
+
+<p style="padding-left:60px;">
+   <span style="padding: 5px; border: 1px solid #AAA;"> <a href="ipmi-get-auth.py">ipmi-get-auth.py</a> /
+   <a href="http://trouble.org/?p=712">A very small description</a> </span><br />
+</p> <p>
+
+Taking this to extremes... well, here's a sort of mega version of
+the above that does it for all channels, all privs, all... well,
+you get the drift. For the monomaniacal (read comments or the post
+I wrote about it to see why it does what it does!)
+
+<p style="padding-left:60px;">
+   <span style="padding: 5px; border: 1px solid #AAA;"> <a href="mega_chan.py">mega_chan.py</a> /
+   <a href="http://trouble.org/?p=1046">Mega mega mega ... chan chan chan...</a> </span><br />
+</p> <p>
+
+
 
 <h4> Dump passwords from a SuperMicro binary password file</h4>
 
@@ -225,35 +256,6 @@ just to suck it up and do the IPMI ping in parallel with the scanner
 
 </p> <p>
 <h4>Audit</h4>
-
-Two programs here, one is a simple Python
-remote prober (starting to hate Perl, let me tell you) and a second
-that uses utilities from <a href="http://www.gnu.org/software/freeipmi/">FreeIPMI</a>
-to grab credentialed configuration data.
-
-</p> <p>
-
-A small python program (over 50% inline comments, 2.5k gzip'd) that sends a single packet 
-to a BMC and mulls over the response.  What can you do with only a single packet, one 
-might ask?  10+ different security tests for IPMI, for starters.  Well, for starters 
-and for enders, it's only a packet :)  Requires python, a BMC and an open path to 
-UDP port 623 to work.  Usage is simply "ipmi-get-auth.py target".
-
-<p style="padding-left:60px;">
-   <span style="padding: 5px; border: 1px solid #AAA;"> <a href="ipmi-get-auth.py">ipmi-get-auth.py</a> /
-   <a href="http://trouble.org/?p=712">A very small description</a> </span><br />
-</p> <p>
-
-Taking this to extremes... well, here's a sort of mega version of
-the above that does it for all channels, all privs, all... well,
-you get the drift. For the monomaniacal (read comments or the post
-I wrote about it to see why it does what it does!)
-
-<p style="padding-left:60px;">
-   <span style="padding: 5px; border: 1px solid #AAA;"> <a href="mega_chan.py">mega_chan.py</a> /
-   <a href="http://trouble.org/?p=1046">Mega mega mega ... chan chan chan...</a> </span><br />
-</p> <p>
-
 
 Here's a couple of small python programs that - using FreeIPMI tools - (a) sucks in the
 basic IPMI/BMC configuration of a server and (b) does a lil' security check on the results.
