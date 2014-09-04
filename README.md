@@ -244,6 +244,17 @@ UDP port 623 to work.  Usage is simply "ipmi-get-auth.py target".
    <a href="http://trouble.org/?p=712">A very small description</a> </span><br />
 </p> <p>
 
+Taking this to extremes... well, here's a sort of mega version of the above that
+does it for all channels, all privs, all... well, you get the drift. For the
+monomaniacal (read comments to see why it does what it does!)
+
+
+<p style="padding-left:60px;">
+   <span style="padding: 5px; border: 1px solid #AAA;"> <a href="mega_chan.py">mega_chan.py</a> /
+   <a href="http://trouble.org/?p=1046">Mega mega mega ... chan chan chan...</a> </span><br />
+</p> <p>
+
+
 Here's a couple of small python programs that - using FreeIPMI tools - (a) sucks in the
 basic IPMI/BMC configuration of a server and (b) does a lil' security check on the results.
 
