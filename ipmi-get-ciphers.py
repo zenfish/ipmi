@@ -292,7 +292,7 @@ try:
     udp.close()
 
 except Exception, e:
-    sys.stderr.write("hmmm.... problems in paradise, tonto: %s, bailin'" % e)
+    sys.stderr.write("hmmm.... problems in paradise, tonto: %s, bailin'\n" % e)
     sys.exit(3)
 
 #
