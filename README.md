@@ -59,6 +59,18 @@ I wrote about it to see why it does what it does!)
    <a href="http://trouble.org/?p=1046">Mega mega mega ... chan chan chan...</a> </span><br />
 </p> <p>
 
+And here's a simple program to send a Get Device ID packet (see
+p250 of the IPMI v 2 spec) to a system. This should, in theory,
+work without authentication. In a little survey I took about 90%
+of systems responded to this (although not all with valid info!)
+You can, at times, get the vendor and other information, such as
+model numbers and such, but more interestingly is actually getting
+a unique ID, traditionally a hard thing to get via the net.
+
+<p style="padding-left:60px;">
+   <span style="padding: 5px; border: 1px solid #AAA;"> <a href="mega_chan.py">get-ipmi-guid.py</a> /
+   <a href="http://trouble.org/wp-admin/post.php?post=1052">Get Device ID</a> </span><br />
+</p> <p>
 
 
 <h4> Dump passwords from a SuperMicro binary password file</h4>
