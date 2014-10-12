@@ -59,6 +59,8 @@ I wrote about it to see why it does what it does!)
    <a href="http://trouble.org/?p=1046">Mega mega mega ... chan chan chan...</a> </span><br />
 </p> <p>
 
+<h4> Get Device ID (GUID) </h4>
+
 And here's a simple program to send a Get Device ID packet (see
 p250 of the IPMI v 2 spec) to a system. This should, in theory,
 work without authentication. In a little survey I took about 90%
