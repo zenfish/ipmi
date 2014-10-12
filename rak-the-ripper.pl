@@ -155,7 +155,7 @@ $pass = "fluffy-wuffy-bunny!!";
 # Not going to cache these since they can blow up my poor mac's memory... feel
 # free to change it ;)
 #
-if (! defined(@guesses)) {
+if (! @guesses) {
    if ($password_file ne "") {
       open(PASSWORDS, $password_file) || die "can't open user file $password_file\n";
       print "opening password file $password_file\n" if $verbose;
@@ -171,7 +171,7 @@ if (! defined(@guesses)) {
 #
 # need to know account name... either from file or some defaults I made up
 #
-if (! defined(@users)) {
+if (! @users) {
    if ($user_file ne "") {
       open(ACCOUNTS, $user_file) || die "can't open user file $user_file\n";
       print "getting list of users from $user_file\n" if $verbose;
@@ -320,7 +320,7 @@ for $user (@users) {
    # curiosity ;)
    $start = Time::HiRes::gettimeofday();
 
-   if (! defined(@guesses)) {
+   if (! @guesses) {
       while (($guess = <PASSWORDS>)) {
          chomp($guess);
          break if guesswork();
