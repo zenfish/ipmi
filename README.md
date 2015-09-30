@@ -291,7 +291,7 @@ But life goes on.
 
 </p> <p>
 
-The data aquisition is done via a python program (I-check.py) that
+The data acquisition is done via a python program (I-check.py) that
 requires valid credentials to get data. It converts the results to
 JSON, which in turn may be checked by the audit tool (ipmifreely.py.)
 There is a sample policy in "IPMI-policy.ini", where I put some values
