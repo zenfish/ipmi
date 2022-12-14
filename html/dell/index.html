@@ -1,0 +1,139 @@
+<HTML>
+<HEAD>
+<TITLE>Dell iDRAC notes</TITLE>
+</HEAD>
+
+
+<h4>Detecting Dell iDRACs remotely.</h4>
+
+There are many ways to do this, of course... but this seems to work on
+most of them.  Fetch a https URL from the system, like so (-k option in
+curl tells it to ignore the bad cert that's almost certainly there):
+
+<blockquote>
+   curl -k https://10.0.0.1/cgi-bin/discover
+</blockquote>
+
+And it'll spit out some XML that looks something like:
+
+<blockquote>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;&lt;DISCOVER&gt;&lt;RESP&gt;&lt;RC&gt;0x0&lt;/RC&gt;&lt;ENDPOINTTYPE&gt;iDRAC&lt;/ENDPOINTTYPE&gt;&lt;ENDPOINTVER&gt;1.00&lt;/ENDPOINTVER&gt;&lt;PROTOCOLTYPE&gt;HTTPS&lt;/PROTOCOLTYPE&gt;&lt;PROTOCOLVER&gt;2.0&lt;/PROTOCOLVER&gt;&lt;/RESP&gt;&lt;/DISCOVER&gt;
+</pre>
+</blockquote>
+
+So... of course I had to look around... it looks like it doesn't work on some,
+but why, I have no idea. BMCs are flakey at best.  I got results for ENDPOINTTYPEs
+DRAC5, iDRAC (that looks like iDRAC 6), iDRAC7, and just a handful of iDRAC6Ms, 
+whatever those are.
+
+<p>
+
+Hunting around I didn't see any mention at all for those XML string values... except
+in one place, a patent app filed by Quanta computer inc:
+
+<p>
+
+<blockquote>
+<a href="http://www.freepatentsonline.com/y2008/0120709.html">Management interface between embedded systems and computer system medium using the same </a>
+</blockquote>
+
+<p>
+
+Oddly named, but it also has the same details and names pretty verbatim;
+given the patent covers embedded servers I doubt it's a coincidence....
+
+<blockquote>
+<pre>
+
+&lt;?xml version="1.0"&gt;
+&lt;MODULE_DISCOVER&gt;
+&lt;RESPONSE&gt;
+&lt;RC&gt;0x0&lt;/RC&gt;
+&lt;OUTPUTLEN&gt;0xXXXX&lt;/OUTPUTLEN&gt;
+&lt;ENDPOINTTYPE&gt;Switch Blade&lt;/ENDPOINTTYPE&gt;
+&lt;ENDPOINTVERSION&gt;1.0&lt;/ENDPOINTVERSION&gt;
+&lt;PROTOCOLTYPE&gt;XML&lt;/PROTOCOLTYPE&gt;
+&lt;PROTOCOLVER&gt;1.0&lt;/PROTOCOLVER&gt;
+&lt;/RESPONSE&gt;
+&lt;/MODULE_DISCOVER&gt;
+
+</pre>
+</blockquote>
+
+Add another to the detection bag of trix.
+
+<h4> guts below... </h4>
+
+Very simple to get into the guts here.  I'm not saying much about the Dell yet
+since I'm still talking to the Dell folks about how I got into it and they
+wanted some more time.
+
+<p>
+
+(BTW, binaries for the rather odd armv5tejl may be found
+<a href="http://ipkg.nslu2-linux.org/feeds/debianslug/cross/4.8-beta/">here</a>.
+To unpack, do "ar xv filename.ipk"... then unpack again on the data file,
+as such "tar xzvf data.tar.gz".)
+
+<p>
+
+Remote debugging?  Easy!  Get the gdbserver from the repository above... and:
+<p>
+
+<p>
+<blockquote>
+<pre>
+[WPCM450 /tmp/$ <strong>./gdbserver :6666 --attach 28598</strong>
+Attached; pid = 28598
+Listening on port 6666
+</pre>
+</blockquote>
+<p>
+And on the second machine, just connect when in GDB with "(gdb) remote 10.0.0.1:6666"
+<p>
+
+I believe that these are the basic files that make up the iDRAC stuff;
+from a service list file in /etc:
+
+<p>
+<blockquote>
+<pre>
+[WPCM450 /]$ <strong>cat /etc/sysconfig/idrac_service.list</strong>
+# List of services for self-test results
+# Do NOT leave any blank line in the file!!!
+/avct/sbin/os
+/avct/sbin/osinet
+/avct/sbin/pm
+/bin/ipmi_gateway
+/bin/ipmi_monitor
+/bin/ttymonitor
+/sbin/aim
+/sbin/avct_server
+/sbin/klogd
+#/sbin/openwsmand
+/sbin/sfcbd
+/sbin/sshd
+/sbin/syslogd
+/sbin/watchdog
+/usr/local/bin/appweb
+/usr/local/bin/guiDataServer
+/usr/local/bin/serviceman
+/usr/sbin/ipmiextd
+/usr/sbin/raclogd
+#udhcpc
+#/bin/fullfw
+# This is end of the list
+</pre>
+</blockquote>
+
+
+
+<p>
+<hr>
+<p>
+
+<a href="/ipmi/">back to general IPMI page</a>
+
+</BODY>
+</HTML>

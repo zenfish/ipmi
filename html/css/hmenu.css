@@ -1,0 +1,43 @@
+ 
+nav {
+  margin: 50px;
+}
+ 
+ul.navi {
+  overflow: auto;
+  list-style-type: none;
+}
+ 
+li.navi {
+  height: 25px;
+  float: left;
+  margin-right: 0px;
+  border-right: 1px solid #aaa;
+  padding: 0 20px;
+}
+ 
+li.navi:last-child {
+  border-right: none;
+}
+ 
+li.navi a {
+  text-decoration: none;
+  color: #ccc;
+  font: 25px/1 Helvetica, Verdana, sans-serif;
+  text-transform: uppercase;
+ 
+  -webkit-transition: all 0.5s ease;
+  -moz-transition: all 0.5s ease;
+  -o-transition: all 0.5s ease;
+  -ms-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+}
+ 
+li.navi a:hover {
+  color: #666;
+}
+ 
+li.navi.active a {
+  font-weight: bold;
+  color: #333;
+}

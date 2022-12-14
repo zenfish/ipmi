@@ -1,0 +1,94 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>IPMI toolz</title>
+
+   <!-- from the marvelous http://1kbgrid.com/ -->
+        <link href="css/grid.css" type="text/css" rel="stylesheet" media="screen"/>
+        <style type="text/css" media="screen">
+                body { margin: 10px 0 0 0; }
+                p.grid {
+                        font-family: Georgia, "Times New Roman", Times, serif;
+                        color: #000;
+                        margin: 0 0 10px 0;
+                }
+   </style>
+
+   <!-- http://designshack.net/articles/css/5-simple-and-practical-css-list-styles-you-can-copy-and-paste/ -->
+   <link rel="stylesheet" href="/ipmi/css/hmenu.css" type="text/css">
+   <!-- http://twistedintellect.com/ -->
+   <link rel="stylesheet" href="/ipmi/css/twisty.css" type="text/css">
+
+   <!-- http://pythoughts.com/table-style-css/ -->
+   <link rel="stylesheet" href="/ipmi/css/table.css" type="text/css">
+
+   <style>
+      /* http://hellodirty.com/post/30281359285/how-can-i-add-a-background-image-to-masonite-theme-i */
+      body {
+         background-image: url(/ipmi/images/vintage_speckles.png);
+         background-repeat: repeat; /* no-repeat/repeat-x/repeat-y */
+         background-position: 0 0; /* 100%/300px/left/center/right 100%/300px/top/center/bottom */
+      }
+   </style>
+
+</head>
+<body>
+
+<div class="row">
+        <div class="column grid_12">
+      <nav>
+         <ul style="list-style-type: none;">
+            <li class="active navi"><a href="/ipmi">IPMI</a></li>
+            <li class="navi">       <a href="http://trouble.org">trouble</a></li>
+            <li class="navi">       <a href="/security">security</a></li>
+         </ul>
+      </nav>
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2"><p></p></div>
+   <div class="column grid_6">
+      <p style="margin-top: 20px; margin-bottom: 0px; text-align: center; border: 1px solid #000;" class="grid styley">Some tools. Well, for now, tool.</p>
+	</div>
+</div>
+
+<div class="row">
+   <div class="column grid_12">
+	
+	<p class="grid">
+	A small python program (>50% inline comments, 2.5k gzip'd) that sends a single packet 
+   to a BMC and mulls over the response.  What can you do with only a single packet, one 
+   might ask?  10+ different security tests for IPMI, for starters.  Well, for starters 
+   and for enders, it's only a packet :)  Requires python, a BMC and an open path to 
+   UDP port 623 to work.  Usage is simply "ipmi-get-auth.py target".
+
+   <p style="padding-left:60px;">
+      <span style="padding: 5px; border: 1px solid #AAA;"> <a href="/ipmi/tools/ipmi-get-auth.py.gz">ipmi-get-auth.py</a> /
+      <a href="http://trouble.org/?p=712">A very small description</a> </span>
+   </p>
+
+	<p class="grid">
+	I've written a wrapper around good ol' Nmap to look for systems running BMC.  The first problem
+   is that... well, it's not always easy knowing if something is a BMC or not, since UDP 623 (what
+   IPMI talks over) is usually blocked (and if it's not that's another problem ;))
+   </p>
+   <p class="grid">
+   And then Nmap, bless it's heart... oh, how I hate that XML output. I initially wrote it in pure
+   plaintext output mode, but as I scanned more and more I junked that for XML... then I remembered
+   why I did it in normal mode in the first place, as my workstation died from memory starvation after
+   a podunk class B was scanned (damn Chrome too - I have 16 GB RAM, I shouldn't run out!)
+   <p>
+   Anyway, needs work but if someone is desperate I'll consider release.
+   </p>
+   <p class="grid">
+   I've also written a plain data-sucker that does a credentialed configuration suck of a BMC,
+   but I haven't finished the analytics side yet.  It will probably, possibly, maybe come out someday....
+   </p>
+
+   </div>
+</div>
+
+</body>
+</html>

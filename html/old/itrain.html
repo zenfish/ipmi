@@ -1,0 +1,353 @@
+<p align="right">
+<span align="right"> <em>dan farmer</em> </span><br />
+<span align="right"> <em>zen@trouble.org</em> </span><br />
+<span align="right"> 1/28/2013 </span><br/>
+</p>
+
+<p align="center">
+    IPMI: Freight Train to Hell
+</p>
+<h2>
+    <a name="_Toc221010987">Abstract</a>
+</h2>
+<p>
+    Intel's Intelligent Platform Management Interface (<a href="http://en.wikipedia.org/wiki/Ipmi"><strong>IPMI</strong></a>), which is implemented and added
+    onto by all server vendors, grant system administrators with a means to manage their hardware in an Out of Band (OOB) or Lights Out Management (LOM)
+    fashion. However there are a series of design, utilization, and vendor issues that cause complex, pervasive, and serious security infrastructure problems.
+</p>
+<p>
+    The BMC is an embedded computer on the motherboard that implements IPMI; it enjoys an asymmetrical relationship with its host, with the BMC able to gain
+    full control of memory and I/O, while the server is both blind and impotent against the BMC. Compromised servers have full access to the private IPMI
+    network
+</p>
+<p>
+    The BMC uses reusable passwords that are infrequently changed, widely shared among servers, and stored in clear text in its storage. The passwords may be
+    disclosed with an attack on the server, over the network network against the BMC, or with a physical attack against the motherboard (including after the
+    server has been decommissioned.)
+</p>
+<p>
+    IT's reliance on IPMI to reduce costs, the near-complete lack of research, 3<sup>rd</sup> party products, or vendor documentation on IPMI and the BMC
+    security, and the permanent nature of the BMC on the motherboard make it currently very difficult to defend, fix or remediate against these issues.
+</p>
+<h2>
+    <a name="_Toc221010988">Introduction</a>
+</h2>
+<p>
+    Imagine trying to secure an important group of servers that are essentially black boxes: not only are they full of old code and attack points, but there
+    isn't any documentation on how they operate; you're unable to login, patch or fix problems; you're unable to run any server-based defensive, anti-malware,
+    or audit software; and to top it off all the servers share reusable passwords that are stored in clear text. These insecure servers are not only pervasive
+    but allow stealth control and monitoring over all the other servers on your network. Welcome to the 3<sup>rd</sup> millennium.
+</p>
+<p>
+    There are at least twice as many servers in your data center and networks than you might think. Modern servers have an embedded computer called the
+    Baseboard Management Controller (BMC), which has its own CPU, RAM, storage, and physical network interface that all operate independently of the main
+    server. The BMC was designed to facilitate out of band (OOB) operations and implement the Intelligent Platform Management Interface (IPMI), a standard
+created by Intel and a consortium of large server vendors; today nearly 200 computer manufacturers are on Intel's Adopter's List    <a href="#_edn1" name="_ednref1" title="">[1]</a>.
+</p>
+<p>
+    IPMI is mostly used for low-level tasks like rebooting servers, monitoring physical sensors (e.g. temperature, memory health, fan speed, etc.), providing
+    virtual remote consoles and so on. However, due to its design, IPMI could also provide a mechanism to spy, control, and modify data and network traffic in
+    a fashion that is about as close to invisible as can be imagined. To top it off IPMI access is governed by a clear text (i.e. unencrypted) set of passwords
+    stored on the motherboard between all servers in a management group.
+</p>
+<p>
+    That thanks to IPMI and a widespread confluence of issues - including vendor design and architectural decisions, the standards and resulting implications
+    on operations and security, how it is used operationally within organizations, and an almost complete lack of awareness or dialogue or research on the
+    subject -we've dug ourselves a serious digital hole about as large as the Grand Canyon. To compound matters it's not a single problem - none of them
+    individually are showstoppers - but due to the cascading nature of issues the problems add up to something more. Unfortunately all these factors take a bit
+    of explanation, hence the length of this document (I've also written a <a href="http://fish2.com/ipmi/compressed.docx">Reader's Digest version</a>, but it
+    might give more questions than answers depending on your knowledge level.)
+</p>
+<p>
+    I must note up front that this paper's title is a bit unfair to IPMI, which does have its own issues, but those are greatly amplified by factors that have
+    nothing to do with the specification. But in an attempt at clarity and simplicity I'll be using "IPMI" as a catchall phrase for several things - the
+    specification, the BMC, how customers actually utilize it, the vendor and how they add features on top of the spec, etc. I hope the IPMI experts will
+    forgive me for potentially slandering pure IPMI, and I'll try to distinguish who is the root cause of the various issues.
+</p>
+<p>
+    The severity of the situation mainly depends on three factors: the amount of servers in IPMI management groups, the amount of time between password changes
+    within groups, and the difficulty of exploiting or abusing the BMC or the IPMI interface. If I'm off the mark on any of these it could be much less
+    damaging than I claim. This is further clouded because hard data is perniciously difficult to get on such sensitive subject matter. In any case this paper
+    details my analysis to date.
+</p>
+<p>
+    Those that are familiar with IPMI can safely skip or skim section I. I cover some architecture and implementation details of the BMC in section II; IPMI
+    usage and deployment in the wild in III; section IV has a list of specific security problems, and then I end with a summary and some thoughts on where we
+    might go from here.
+</p>
+<p>
+    There are so many different implementations, versions, vendors, and ambiguities I've tried to make the writing clearer by putting many of the caveats and
+    one-offs in footnotes out of the path of general reading. And while I thank some people for help and reviewing my work (see the acknowledgements at the
+    end), any omissions, errors, falsehoods or whatnot are solely my responsibility. It's a sprawling topic, far too big to cover in these pages, so I've also
+placed some additional background data, notes on vendors and specific implementations, along with links, references, and the like at my web site,    <a href="http://fish2.com/ipmi">http://fish2.com/ipmi</a>.
+</p>
+<h2>
+    <a name="_Toc221010989">Disclaimer</a>
+</h2>
+<p>
+    I'd like to emphasize that I'm not an IPMI expert. I'd never used IPMI, and knew about as much as most people (e.g. nothing) until a couple of months ago
+    when I got curious. I'm doing this completely on my own free time, although I did leverage three servers that are for my DARPA based Cyber Fast Track
+    program research.<a href="#_edn2" name="_ednref2" title="">[2]</a> This handful of servers along with some network scanning, a variety of conversations
+    with knowledgeable people, and a whole lot of reading is what I base the entire paper on.
+</p>
+<p>
+    <img width="125" height="95" src="clip_image002.png" align="left" hspace="14"/>
+    I did contact CERT and some vendors about the issues in this paper but no one has been interested in any sort of formal response or communication. Indeed,
+    there is a definite sense that the situation isn't as dire as I proclaim. However, I'll note that this all has been implemented and expanded by vendors
+    with absolutely no scrutiny or oversight from the security community and researchers, which hasn't traditionally been a metric for security success.
+    Finally: this isn't meant to be a scientific paper with measurements and hypothesis and results; given the breadth of the topic it's more of a porky
+    watercolor, a sketch, or essay that attempts to draw fairly broad conclusions on a bit of disconcerting evidence. I'll stand by my work and am content to
+    disagree with the world at large (as is my wont), but will remain open to discourse if anything comes of this, and will be happy to change my mind as I
+    learn more.
+</p>
+<p>
+    Table of Contents
+</p>
+    Abstract................................................................................... 1</br>
+    Introduction............................................................................... 1</br>
+    Disclaimer................................................................................. 2</br>
+    I. IPMI.................................................................................... 3</br>
+    II. The BMC................................................................................ 5</br>
+    III. IPMI in the Wild......................................................................10</br>
+    IV. Security Proclamations.................................................................12</br>
+    V. Into You Like a Train (Conclusion)..................................................... 16</br>
+    Bibliography...............................................................................18</br>
+    I'd like to thank&#8230;...................................................................21</br>
+</p>
+<p>
+    <strong></strong>
+</p>
+<h2>
+    <a name="_Toc221010990">I. IPMI</a>
+</h2>
+<p>
+    By far the most popular OOB protocol today is the Intelligent Platform Management Interface, aka IPMI, which communicates to a server via the service
+    processor or baseboard management controller (BMC.)
+</p>
+<p>
+    The IPMI system is actually composed of three specifications: the "Intelligent Platform Management Interface (IPMI), Intelligent Platform Management Bus
+    (IPMB) and Intelligent Chassis Management Bus (ICMB)."<a href="#_edn3" name="_ednref3" title="">[3]</a> It was initially developed by Intel, Dell, HP, and
+    other large corporations; version 1.0 specifications published in 1998. Version 1.5, which is still in fairly wide use, came out in 2001, and 2.0 was
+    rolled out in 2004 (the last revisions being published June 2009.) 2.0's main security contribution was to introduce the option of network encryption.
+</p>
+<p>
+    Server and firmware vendors add features and use a variety of names; Dell calls theirs iDRAC, Hewlett Packard iLO, IBM IMM, etc, but in the end it's all
+IPMI under the hood. Intel launched a similar effort for personal computers called Active Management Technology (    <a href="http://en.wikipedia.org/wiki/Intel_Active_Management_Technology">AMT</a>) that shares many features with IPMI, but while hazardous I don't
+    personally view it to be as threatening as IPMI.
+</p>
+<p>
+    IPMI was designed to be resilient - the BMC is able to communicate with its server or with other computers even when the network is down, the server power
+    is off, the operating system or disks crash, or when other catastrophic failures happen (which is pretty cool if you think of it.)
+</p>
+<p>
+    The BMC essentially provides a data abstraction layer to the server's physical hardware via an IPMI programming interface. This makes it simple for
+    monitoring tools such as Nagios, Cacti, etc. to extract this information on an ongoing basis via IPMI rather than mucking around with the firmware or
+    sensors directly.
+</p>
+<p>
+    The most common use of IPMI is to monitor server physical health and status via its sensors; temperature, memory errors, disk health, fan speeds, and the
+    like may be captured and associated alarms triggered when something is amiss. IPMI can also reboot the system upgrading the BIOS, install an operating
+    system, or other low-level management tasks.
+</p>
+<p>
+    As IPMI's popularity grew, users and marketing folks naturally started asking for more features, and even more naturally vendors were happy to supply. As a
+    result more and more functionality has been stuffed into the BMC, with most vendors supply at least a dozen or more different services including web, mail,
+    and SNMP servers.
+</p>
+<p>
+    There seem to be three or more vendors involved with any given computer's implementation: the chip maker, the one or more firmware adder-onners, and the
+    final server vendor who may add their own functionality and possibly an additional management interface for the end users.
+</p>
+<p>
+    Commonly the BMC is physically connected to the South Bridge, a core component on a motherboard that controls most I/O. The IPMI specification also defines
+    interfaces used to enable and talk directly to other subsystems such as management controllers, add-in cards, various busses such as SMBus, I<sup>2</sup>C
+    etc.
+</p>
+<table cellpadding="0" cellspacing="0">
+    <tbody>
+        <tr>
+            <td width="42" height="0">
+            </td>
+        </tr>
+        <tr>
+            <td>
+            </td>
+            <td>
+                <img width="324" height="202" src="clip_image004.png"/>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<br clear="ALL"/>
+<p>
+    Figure 1, courtesy of the Intel Development Forum, might help illustrate IPMI's place in the management stack - traditional management systems deal with
+    the higher level concepts of applications, operating systems, and the like - and something was needed to deal with the low-level hardware issues (IPMI is
+    also used by supercomputers, virtual controllers, clustered computers, etc. to spin up and down new resources on demand.) Through efforts such as the
+    Common Information Model (CIM) IPMI is providing its services to higher and higher levels of abstractions in an effort to provide a unified administrative
+    interface. Support for popular scripting languages and web interfaces are de rigueur.
+</p>
+<p>
+    From the start OOB was meant to communicate when the bits hit the fan; initially people skipped the normal user to server communication channels and used
+    such reliable but slow or pricey technology like analogue POTS lines, dedicated Internet connections or other independent networking technologies; the
+    important part was that it was separate from the main network to be protected from the same outages that might bring down the network. This also gave an
+    important amount of security separation, making it very difficult for anyone but insiders to know anything about the OOB machinery for a given network or
+    datacenter. As time went on, interaction was deemed more desirable (e.g. video, mouse, etc.), cost cutting became more important, and the communication
+    separation became less frequent; these days instead of having a network completely devoted to OOB its more common to segregate traffic with
+</p>
+<a href="http://en.wikipedia.org/wiki/Vlan">VLANs</a> or share a non-routable network with 3<sup>rd</sup>
+    tier database or other non-internet facing servers.
+</p>
+<p>
+    If you're only worried about the one-password for all those machines, the IPMI specification itself does offer some help of sorts in the RMCP+
+    Authenticated Key-Exchange Protocol, or RAKP. Cacote &amp; Masi describe<a href="#_edn4" name="_ednref4" title="">[4]</a> using this to create new
+    passwords every day for every system, but it was only used on about 2,000 managed hosts, and it seems to involve some very complicated machinery. RAKP has
+    flaws as well, however, including allowing people to use null passwords (making it useless), along with the fact that the IPMI specification says that it
+    doesn't have "a secure, confidential mechanism for installing and distributing user keys between BMCs and remote consoles", which dampens my enthusiasm.
+    Search engines show very little documentation or examples of use, which probably means not a lot of people use it.
+</p>
+<p>
+    IPMI is a flexible specification that allows a lot of different configurations, and like most systems some are less desirable than others, security-wise,
+    and yet there's almost no community, research, or help for users wanting to secure their systems. There's a real need for security checklists, articles, a
+    security FAQ, software tools, and discussion about the implications of IPMI and all it entails.
+</p>
+<p>
+    I've placed some additional technical <a href="http://fish2.com/ipmi">security notes</a> as well as pointers to other resources on my site.
+</p>
+<h2>
+    <a name="_Toc221010991">II. The BMC</a>
+</h2>
+<p>
+    There is a wealth of information out there about the functionality of IPMI, but it's hard to find much at all about the BMC or the various vendor
+    implementations. It's a real server with a real OS and some fairly complex interactions with its host server and the outside world. So this is a high level
+    gloss is primarily based on explorations with my lab machines along with BMC flash upgrades from other vendors. If you're keenly interested you might read
+    a slightly expanded version<a href="#_edn5" name="_ednref5" title="">[5]</a> I wrote with some additional details.
+</p>
+<p>
+Figure 2 shows a high-level hardware architectural diagram of a fairly typical BMC, in this case a Winbond WPCM450:
+</p>
+<p align="center">
+    <img title="Image has been taken down from net ;(" src="bmc.png" align="left" hspace="9" alt="Text Box: Figure 2" />
+</p>
+<p>
+    Obviously implementations will vary, but the BMC is hooked up to the Southbridge, the area on a motherboard and responsible for the server's I/O. The BMC
+    is a small computer running a minimalistic OS (Linux being common<a href="#_edn6" name="_ednref6" title="">[6]</a>) with an independent CPU (often
+    RISC/ARM-based), RAM, storage, and Ethernet adaptor (although it can share its server's network interfaces as well.) There are just a handful or two of
+major subsystem vendors that design and manufacture the IPMI ecosystem and add-on firmware for the major server vendors, seemingly all made in China    <a href="#_edn7" name="_ednref7" title="">[7]</a>.
+</p>
+<p>
+    The ARM 926EJ's datasheet, used by Nuvoton, the manufacturer of one of my BMCs, said it cruises along at about 200 MFLOPS - faster than the first Cray
+    super computer. Since the BMC actually does anything useful about 1% of 1% of the time perhaps we could start harnessing them for SETI or use them as
+    failover servers for light duties. A few hundred million Crays just lying around; perhaps IPMI is simply a missed opportunity to better our world?
+</p>
+<p>
+    Open source and in particular GPL'd software is heavily leveraged - the kernel, OS, boot loader<a href="#_edn8" name="_ednref8" title="">[8]</a>, most of
+    the network services, etc., so in theory the vendors should be sharing the details of their implementations; unfortunately I've not been very successful at
+    finding many details or how to pry such things loose.
+</p>
+<p>
+    The BMC isn't a mere parasite: it runs independently of the main operating system and is always running as long as any power is supplied to the computer.
+    Other than the standard IPMI interfaces used to query its data I know of no software method that would discover activity or details within a BMC unless
+    you're logged into the BMC; physical monitoring via JTAG or other instrumentation might prove fruitful. All communication is handled by the BMC's kernel
+    and supporting programs, so even the most elemental of requests could return false data.
+</p>
+<p>
+    The IPMI specification explicitly mentions how useful System Management Interrupts (SMIs) can be for IPMI, although they're not officially part of the
+    specification. SMI's are the highest priority non-maskable interrupts on a computer, and when asserted the processors are shifted into System Management
+    Mode (SMM<a href="#_edn9" name="_ednref9" title="">[9]</a>) and the SMI handler - simply a bit of code by the vendor - is free to fold, spindle, or
+    mutilate the server in any way desired in a nearly invisible fashion. At this point the IPMI specification puts it succinctly - the BMC has "full access to
+    system memory and I/O space<a href="#_edn10" name="_ednref10" title="">[10]</a>."
+</p>
+<p>
+    After scanning lots of hardware literature, marketing material, and vendor documentation it seems as though the BMC usually seems to have the ability to
+    use SMI handlers to enter SMM mode. Even if it didn't, however, with its low-level hardware connections and existing power over its host it would be hard
+    to stop it from doing anything it wants.
+</p>
+<p>
+    <strong>Communications</strong>
+</p>
+<p>
+There are four main ways of communicating to the BMC directly: there's an interactive shell, a web interface, various command line tools (like    <em>ipmitools</em>; by default this is on UDP port 623), and finally via series of network services (e.g. virtual media, remote consoles, SNMP, etc.) that
+    can be used either interactively or via automated tools to manage or query as to the health and well-being of the BMC and its host. Ultimately most, if not
+    all of these capabilities are implemented just like on a normal Linux server: as a daemon or agent on the BMC's OS. Not all of these features are actually
+    in the IPMI specification but are nearly universally on the BMC and packaged up as part of the vendors OOB offering.
+</p>
+<p>
+    Most of the time IPMI must be explicitly turned on<a href="#_edn11" name="_ednref11" title="">[11]</a> via the BIOS/UEFI/system firmware or as part of a
+    special vendor custom order (there are stories of some vendors having it turned on by default, which is a serious risk), but it requires no configuration
+    or special software on the host OS to be running (although you have to configure the server in order to communicate with the BMC.) Many servers have a
+    dedicated management port for IPMI, but it can also share the network adaptor of the host OS<a href="#_edn12" name="_ednref12" title="">[12]</a>. Once a
+    power cord is plugged in the BMC will start up, whether or not the host system has been activated.
+</p>
+<p>
+    <strong>Authentication </strong>
+</p>
+<p>
+    IPMI authentication is handled via a small set (usually from 10-16) of local IPMI users can be created on each channel of the BMC. They can be given
+    passwords of up to 16 (IPMI 1.5) or 20 (IPMI 2.0) characters, which are both stored in clear text<a href="#_edn13" name="_ednref13" title="">[13]</a>.
+    Because the client never sends the password (cryptographic hashes are used instead; see the end of the previous section) IPMI also can't use out-of-the-box
+    standard network authentication; while most vendors claim to support the usual suspects like LDAP, AD, RADIUS, etc. they have to resort to some sort of
+    hackery (there are rumors that in some cases they simply append the plain text password as an attribute, not quite what you might want; in any case it's
+    different than what one might expect.) But even if network authentication is used you still want that native, host-based fallback mechanism so you'll have
+    console access during emergencies - for instance when the network or RADIUS or AD servers are down; indeed some vendors don't let you disable the BMC based
+    authentication at all to prevent you from locking yourself out.
+</p>
+<p>
+    Most IPMI actions explicitly require a password to be entered. There are a few special cases, however.
+</p>
+<p>
+    If you're logged into a server with an administrative account you enjoy a special relationship with IPMI; you can perform any IPMI-related action
+    (including enabling IPMI) on that local server and BMC without any authentication whatsoever. This means that if a server is compromised local IPMI
+    passwords or accounts may be modified, deleted, or created, network services enabled, etc. If cipher zero (0) is enabled any user may be logged into
+    without any password. It's usually possible to store SSH certificates on the BMC to allow a password free login (with the appropriate private key, of
+    course.) This may be problematic from a management standpoint; who knows if that SSH key is valid, or whom it's really from? You also need to ensure a
+    process is in place to register all locations that have the key along with a removal strategy after a user is terminated or their system is compromised
+    (which would then allow free access to all of the BMCs and IPMI managed systems her key is on.) Some vendors also support single-sign on authentication; if
+    that is hijacked or the user's normal network authentication can be compromised then all IPMI managed servers would be in trouble as well.
+</p>
+<p>
+The IPMI passwords have to stored somewhere on the BMC's subsystem. Some vendors just stick it in a file    <a href="#_edn14" name="_ednref14" title="">[14]</a> in plain sight, but it appears that most try to at least nominally hide it.
+</p>
+<p>
+    <strong>Network Services</strong>
+</p>
+<p>
+    A BMC generally runs a half-dozen or so network services out-of-the-box, but a dozen or more are typically available through the web or command line
+    interfaces. Among the usual cast of characters there's web (HTTP and HTTPS), SSH, telnet, SMTP Virtual KVM/Keyboard/Mouse, Network USB and/or Virtual
+    Media, SOL (Serial over Lan), VNC, WS-MAN, DHCP, SNMP and more - often vendors have a variety of ports for their undocumented special purpose software. And
+    while not listening to network ports they also have various client programs that talk to the network like AD, LDAP, RADIUS, DNS, mail (SMTP) and more.
+</p>
+<p>
+    Of particular and perhaps visceral notice is that most BMCs now offer hooks to Microsoft's RDP/Terminal Services and VNC for a better view of the server
+    side. Text or graphical screenshots or even video recording console activity are common features (the images or movies are stored on the BMC's flash file
+    system.)
+</p>
+<p>
+    <strong>Virtual Media/USB</strong>
+</p>
+<p>
+    Along with the remote console feature, virtual media is one of the main reasons people really like OOB management. While it's not in the IPMI specification
+    I don't think any vendor doesn't offer the feature on the BMC, although sometimes only with their advanced or enterprise version (for an additional fee, of
+    course.)
+</p>
+<p>
+    Using the virtual media feature you can mount Disk images, USB sticks, DVDs/CDs, and the like from anywhere on the net and they'll appear immediately as a
+    file system on thje host exactly like their physical counterparts (beware of autorun!<a href="#_edn15" name="_ednref15" title="">[15]</a>) Virtual media is
+    heavily used for provisioning or bootstrapping new servers or applications, remotely installing or reinstalling the OS, deploying diagnostic tools, etc.
+</p>
+<p>
+    <strong>A few security notes</strong>
+</p>
+<p>
+    I won't go too far into the security possibilities here (see section IV for more on that) but it's worth mentioning that a fair bit of the BMC's
+    capabilities aren't found anywhere but a BMC; virtual media, SOL, sensor data handling, the IPMI protocol, etc. The BMC is constructed with many millions
+    of lines of code; a mixture of moderately popular open source blended with propriety code from a small number of vendors. I haven't found any non-vendor
+    studies or efforts to audit or test for security issues. This is what they call in the biz a green field opportunity, and there is a virtual certainty
+    there are many, many vulnerabilities yet to be uncovered. A few areas ripe for exploitation:
+</p>
+<p>
+<ul>
+    <li> The web server -BMCs have a large number of web pages that execute JavaScript, accept user data and input, transfer data over the network, etc.</li>
+    <li> More traditional but non-web network services (for both authenticated and non-authenticated users)
+    <li> Network stack (TCP/UDP/VLAN/etc.)
+    <li> IPMI protocol handling
+    <li>

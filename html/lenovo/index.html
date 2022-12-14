@@ -1,0 +1,265 @@
+<HTML>
+<HEAD>
+<TITLE>Lenova IPMI notes</TITLE>
+</HEAD>
+
+Very simple to get into the guts here.  Just some sketchy notes on how I did it.
+
+<p>
+First, download the firmware; their docs say:
+<p>
+
+<blockquote>
+<i>
+<strong>Updating the firmware</strong>
+<p>
+The firmware in the server is periodically updated and is
+available for download on the Lenovo Support Web site. Go to
+http://www.lenovo.com/support to check for the latest level of firmware,
+such as the BIOS ROM file, BMC FW and RAID FW files.
+</i>
+</blockquote>
+
+<p>
+
+I got a gzip'd tar file for linux; unpack and run binwalk on the image:
+
+<pre>
+<blockquote>
+$ <strong>gzip -dc tshbmc07sr14.tgz | tar xvf -</strong>
+x BMCLinux64/
+x BMCLinux64/Readme.txt
+x BMCLinux64/fw290.img
+x BMCLinux64/bmcfwul
+x BMCLinux64/udr64.sh
+x BMCLinux64/libopenraw.so
+x BMCLinux64/bmcfwu.cfg
+$ <strong>cd BMCLinux64</strong>
+$ binwalk fw290.img 
+
+DECIMAL   	HEX       	DESCRIPTION
+-------------------------------------------------------------------------------------------------------
+512       	0x200     	uImage header, header size: 64 bytes, header CRC: 0x3F0E68A7, created: Mon Jun 11 00:53:15 2012, image size: 1685898 bytes, Data Address: 0x40008000, Entry Point: 0x40008000, data CRC: 0xF7213FBA, OS: Linux, CPU: ARM, image type: OS Kernel Image, compression type: gzip, image name: arm-linux
+576       	0x240     	gzip compressed data, was "vmlinux.bin", from Unix, last modified: Mon Jun 11 00:53:14 2012, max compression
+<strong><u>1686528</u></strong>   	0x19BC00  	Squashfs filesystem, little endian, version 3.1, size: 12412838 bytes, 1735 inodes, blocksize: 131072 bytes, created: Mon Jun 11 00:59:06 2012
+11550815  	0xB0405F  	Zip archive data,  at least v2.0 to extract
+11562612  	0xB06E74  	Zip archive data,  at least v2.0 to extract
+</pre>
+</blockquote>
+
+Note the squashfs filesystem - I've bolded/underlined the starting point above.  Use that and read to the end
+of the file using dd to carve out the (hopefully) squashiness:
+
+<pre>
+<blockquote>
+$ <strong>dd if=fw290.img of=lenova.sqsh bs=1686528 skip=1</strong>
+7+1 records in
+7+1 records out
+12552212 bytes (13 MB) copied, 0.0131878 s, 952 MB/s
+</pre>
+</blockquote>
+
+And sometimes you just get lucky; in here is the root filesystem of the BMC
+holding much of its inner mechanisms (other stuff will be squirreled away
+on the inner storage that the BMC accesses.)
+
+<pre>
+<blockquote>
+$ <strong>unsquashfs -ll lenova.sqsh </strong>
+Parallel unsquashfs: Using 12 processors
+1686 inodes (1747 blocks) to write
+
+drwxrwxr-x root/root               218 2012-06-11 00:58 squashfs-root
+lrwxrwxrwx root/root                17 2012-06-11 00:58 squashfs-root/.ash_history -> /tmp/.ash_history
+drwxrwxr-x root/root                24 2012-03-29 00:31 squashfs-root/avct
+drwxrwxr-x root/root               101 2012-06-07 05:04 squashfs-root/avct/scripts
+-rwxr-xr-x root/root               323 2012-06-11 00:58 squashfs-root/avct/scripts/copyfile.sh
+-rwxr-xr-x root/root              2194 2012-06-11 00:58 squashfs-root/avct/scripts/csr.sh
+-rwxr-xr-x root/root               323 2012-06-11 00:58 squashfs-root/avct/scripts/rmdir.sh
+[...]
+</blockquote>
+</pre>
+
+Busybox will first look for inittab... in this case: that's "squashfs-root/etc/inittab".
+Note a comment in that file:
+
+<pre>
+<blockquote>
+# Note: BusyBox init works just fine without an inittab. If no inittab is
+# found, it has the following default behavior:
+</blockquote>
+</pre>
+
+Simply removing inittab and repacking the squash along with the rest of
+the stuff back fw290.img (concatonating the squashfs filesystem after
+the original 1686527 bytes) might work, but who knows what they do about
+digital signatures and so forth; I haven't tested it in any case.
+
+<p>
+
+Looking at some strings of the firmware (e.g. "strings fw290.img > fw290.img.strings")... spot a few interesting bits:
+
+<pre>
+<blockquote>
+# kernel args?
+
+root=/dev/ram0 rw initrd=0x%lx,0x%lx ramdisk_size=13312 mem=%s console=%s,115200n8 rootfstype=squashfs quiet
+
+# boot args... note mtdblock3; that's a 56 meg flash drive
+
+bootargs=root=/dev/mtdblock3 mem=56M console=ttyS0
+
+# eeproms sizes, anyone?
+erase_eeprom=mw.b 41400000 ff 4000
+eeprom write 41400000 0 4000
+</blockquote>
+</pre>
+
+Just perusing the unsquashed filesystem....
+
+<pre>
+<blockquote>
+# lots of busybox links... here's a shell script in /bin
+
+	<strong>cat bin/getfwver.sh</strong>
+	BASE_FILE="/etc/fw_ver"
+	PLATFORM_FILE="/flash/data0/BMC_Data/ID_devid.bin"
+	READ_COMM="read_id_devid $PLATFORM_FILE"
+
+	X=`head -n 1 $BASE_FILE`
+	echo "Base version : $X"
+
+	X="`$READ_COMM 2`.`$READ_COMM 3`.`$READ_COMM 11``$READ_COMM 12``$READ_COMM 13``$READ_COMM 14`" 
+	echo "Platform version : $X"
+
+#
+# once more, flash data is in /flash/data0/BMC_Data... just like my Dell.
+# presumably same maker(s) of the bmc subsystem.
+#
+
+# have seen this before in the Dell as well....
+# probably has the passwords held onto by /sbin/fullfw
+#
+
+	<strong>ls -asl etc/default/ipmi/evb/NVRAM_PrivateStorage00.dat</strong>
+	16 -rwxr-xr-x 1 zen 16000 Jun 11 00:56 NVRAM_PrivateStorage00.dat*
+
+# various startup scripts are in /etc/sysapps_script... reading over these will tell you
+# a lot about the system and how it works
+
+	<strong>ls -asl etc/sysapps_script:</strong>
+	total 148
+	4 drwxr-xr-x  2 zen 4096 Jun 11 00:58 ./
+	4 drwxr-xr-x 11 zen 4096 Jun 11 00:58 ../
+	8 -rwxr-xr-x  1 zen 6818 Nov  9  2011 BackupRestore.sh*
+	4 -rw-r--r--  1 zen   14 Mar 19  2012 .gitignore
+	4 -rwxr-xr-x  1 zen 3060 Jun 11 00:58 ifplugd*
+	4 -rwxr-xr-x  1 zen 1623 Jun 11 00:53 I_SYS_Drv.sh*
+	4 -rwxr-xr-x  1 zen   24 Jun 11 00:58 I_watchdog_app.sh*
+	4 -rwxr-xr-x  1 zen   35 Jun 11 00:58 restart_avct_server_maser.sh*
+	4 -rwxr-xr-x  1 zen  199 Sep 25  2009 rotate_avct_server_logs*
+	4 -rwxr-xr-x  1 zen   78 Sep 25  2009 rotatelog*
+	4 -rwxr-xr-x  1 zen 1443 Nov  9  2011 rsyslog_rsyslogd.sh*
+	4 -rwxr-xr-x  1 zen 1013 Jun 11 00:58 S_AIM.sh*
+	4 -rwxr-xr-x  1 zen 1203 Jun 11 00:58 S_ALERTMGR.sh*
+	8 -rwxr-xr-x  1 zen 7757 Jun 11 00:58 S_appweb.sh*
+	4 -rwxr-xr-x  1 zen 2377 Jun 11 00:58 S_APS.sh*
+	8 -rwxr-xr-x  1 zen 4746 Dec  1  2011 S_fullfw_app.sh*
+	4 -rwxr-xr-x  1 zen  869 Jun 11 00:58 S_FWU.sh*
+	4 -rwxr-xr-x  1 zen  343 Jun 11 00:58 S_ifplugd.sh*
+	4 -rwxr-xr-x  1 zen  901 Jun 11 00:58 S_ipmi_gateway.sh*
+	4 -rwxr-xr-x  1 zen  706 Jun 11 00:58 S_KVMMonitor.sh*
+	4 -rwxr-xr-x  1 zen 3413 Jun 11 00:58 S_OSINET.sh*
+	4 -rwxr-xr-x  1 zen 1208 Jun 11 00:58 S_PAM_PM.sh*
+	4 -rwxr-xr-x  1 zen 3109 Nov  9  2011 sshd.startup*
+	4 -rwxr-xr-x  1 zen  685 Jun 11 00:58 S_slpmgr.sh*
+	4 -rwxr-xr-x  1 zen 3388 Jun 11 00:58 S_SM.sh*
+	4 -rwxr-xr-x  1 zen  773 Nov  9  2011 S_sshd_app.sh*
+	4 -rwxr-xr-x  1 zen  652 Nov  9  2011 S_telnetd_app.sh*
+	4 -rwxr-xr-x  1 zen  611 Jun 11 00:58 S_tm_app.sh*
+	4 -rwxr-xr-x  1 zen 1356 Jun 11 00:58 S_ucimomd_app.sh*
+	8 -rwxr-xr-x  1 zen 4282 Jun 11 00:53 S_usb_drv.sh*
+	4 -rwxr-xr-x  1 zen 2592 Jun 11 00:53 S_video_drv.sh*
+	4 -rwxr-xr-x  1 zen 1212 Jun 11 00:58 S_VKVM_PM.sh*
+	4 -rwxr-xr-x  1 zen 1205 Jun 11 00:58 S_VMEDIA-PM.sh*
+
+# empty dirs are sometimes filled in by the media mounted when the BMC starts
+# some, not so empty... might give a clue or two - they use git, apparently :)
+
+	<strong>ls -asl sys</strong>
+	total 12
+	4 drwxr-xr-x  2 zen 4096 Mar 19  2012 ./
+	4 drwxr-xr-x 16 zen 4096 Jun 11 00:58 ../
+	4 -rw-r--r--  1 zen   14 Mar 19  2012 .gitignore
+
+#
+# /usr/local/bin/scp exists, woot, don't have to fight to transfer files to/fro here ;)
+# 
+
+	<strong>file usr/local/bin/scp</strong>
+	usr/local/bin/scp: ELF 32-bit LSB executable, ARM, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.16, not stripped
+
+# and good, usr/local/www is full of content... here's where you can try
+# to find some web vulns!
+
+	<strong>ls -asl usr/local/www</strong>
+	total 796
+	 4 drwxr-xr-x 11 zen  4096 Jun  7 05:04 ./
+	 4 drwxr-xr-x 12 zen  4096 Jun  7 05:04 ../
+	 4 -rw-r--r--  1 zen  2448 Jun 11 00:58 batteries.html
+	 4 -rw-r--r--  1 zen   200 Jun 11 00:58 blank_005.html
+	 8 -rw-r--r--  1 zen  7888 Jun 11 00:58 bmcProps.html
+	12 -rw-r--r--  1 zen  9074 Jun 11 00:58 bmctree.html
+	[...]
+
+# Avocent sure gets around... an interesting sounding file... should check for
+# sanitization of user input... what the hell is an .esp file?  Some sort of scripting
+
+	<strong>head -2 usr/local/www/fwupload/fwupload.esp </strong>
+	<&#37;
+	//  Copyright Â©2009 Avocent Corporation and its affiliates. All Rights Reserved.
+
+# 1.3M of jar file goodness... more problems here, I can feel it... ;(
+
+	<strong>ls -asl usr/local/www/software</strong>
+	total 1332
+  	  4 drwxr-xr-x  2 zen   4096 Jun  7 05:04 ./
+    	  4 drwxr-xr-x 11 zen   4096 Jun  7 05:04 ../
+     	 20 -rw-r--r--  1 zen  18764 Jun 11 00:58 avctKVMIOLinux32.jar
+      	 20 -rw-r--r--  1 zen  19753 Jun 11 00:58 avctKVMIOLinux64.jar
+       	 72 -rw-r--r--  1 zen  70851 Jun 11 00:58 avctKVMIOWin32.jar
+         72 -rw-r--r--  1 zen  72241 Jun 11 00:58 avctKVMIOWin64.jar
+	500 -rw-r--r--  1 zen 510080 Jun 11 00:58 avctKVM.jar
+	204 -rw-r--r--  1 zen 208846 Jun 11 00:58 avctVM.jar
+	128 -rw-r--r--  1 zen 130879 Jun 11 00:58 avctVMLinux32.jar
+	132 -rw-r--r--  1 zen 133509 Jun 11 00:58 avctVMLinux64.jar
+	 84 -rw-r--r--  1 zen  83297 Jun 11 00:58 avctVMWin32.jar
+	 92 -rw-r--r--  1 zen  91482 Jun 11 00:58 avctVMWin64.jar
+
+# why does everyone leave copies of old versions lying around?  Perhaps one of
+# these days a login.html~ will be a bad thing to leave ;)
+
+	<strong>ls -asl usr/local/www/login*</strong>
+	16 -rw-r--r-- 1 zen zen 16238 Jun 11 00:58 login.html
+	20 -rw-r--r-- 1 zen zen 16725 Jun 11 00:58 login.html~
+</blockquote>
+</pre>
+
+And finally... noticed that they don't seem to be sanitizing user
+input... seems bad.  Maybe appweb will protect them?  (Doubt it!)
+Files like "https://ipmi-system/fwupload/fwupload.esp"... hmm.
+So many files, no time (or lenova system or emulator!) to test....
+
+<p>
+
+If I was a bettin' man I'd say someone will crack this in very
+short order.
+
+<p>
+<hr>
+<p>
+
+<a href="/ipmi/">back to general IPMI page</a>
+
+</BODY>
+</HTML>

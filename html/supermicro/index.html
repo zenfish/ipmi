@@ -1,0 +1,252 @@
+<HTML>
+<HEAD>
+<TITLE>Supermicro BMC notes</TITLE>
+</HEAD>
+
+<p>
+Very simple to get into the guts here; all I did was enable IPMI in
+the BIOS and SSH into the BMC's IP address... boom, root.
+<p>
+
+
+Here's a compressed <a href="ls-slash-out.txt.gz">ls -alR on the root filesystem</a> for now... I've got a pile of
+notes on this... so little time, so many BMCs.
+
+<p>
+
+Some commands and their output.
+
+<pre>
+<blockquote>
+# <strong>uname -a</strong>
+Linux SMC0025906E33C3 2.6.24-ami #1 Wed Dec 22 10:50:27 PST 2010 armv5tejl unknown
+
+# <strong>netstat -rn</strong>
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+192.168.0.0     0.0.0.0         255.255.255.0   U         0 0          0 eth0
+0.0.0.0         192.168.0.1     0.0.0.0         UG        0 0          0 eth0
+# netstat -p
+Active Internet connections (w/o servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name   
+tcp        0      0 192.168.0.69:50000      192.168.0.55:45597      CLOSE_WAIT 438/discovery       
+tcp        0      0 192.168.0.69:50000      192.168.0.55:34280      CLOSE_WAIT 438/discovery       
+tcp        0      0 192.168.0.69:50000      192.168.0.55:34107      CLOSE_WAIT 438/discovery       
+tcp        0      0 192.168.0.69:50000      192.168.0.55:34081      CLOSE_WAIT 438/discovery       
+tcp        0      0 192.168.0.69:50000      fierce.fish2.com:59597  CLOSE_WAIT 438/discovery       
+tcp        0      0 192.168.0.69:50000      192.168.0.55:34267      CLOSE_WAIT 438/discovery       
+tcp        1      0 SMC0025906E33C3:46582   SMC0025906E33C3:623     CLOSE_WAIT 232/webgo           
+tcp        0      0 192.168.0.69:50000      fierce.fish2.com:61876  CLOSE_WAIT 438/discovery       
+tcp6       0      0 ::ffff:192.168.0.69:ssh fierce.fish2.com:50604  ESTABLISHED31052/dropbear      
+Active UNIX domain sockets (w/o servers)
+Proto RefCnt Flags       Type       State         I-Node PID/Program name    Path
+unix  3      [ ]         STREAM     CONNECTED     931      327/sfcbd           
+[...]
+[<a href="netstat-rn">full output here</a>
+</blockquote>
+</pre>
+
+And here's the dmesg output - the first part is lost due to buffer limitations.
+
+<pre>
+<blockquote>
+# dmesg
+6>TCP reno registered
+checking if image is initramfs...it isn't (bad gzip magic numbers); looks like an initrd
+Freeing initrd memory: 7308K
+NetWinder Floating Point Emulator V0.97 (double precision)
+bigphysarea: Allocated 1025 pages at 0xc03dd000.
+Installing knfsd (copyright (C) 1996 okir@monad.swb.de).
+JFFS2 version 2.2. (NAND) Â© 2001-2006 Red Hat, Inc.
+io scheduler noop registered (default)
+Serial: 8250/16550 driver $Revision: 1.90 $ 2 ports, IRQ sharing disabled
+serial8250: ttyS0 at I/O 0xe8000000 (irq = 7) is a 16550
+serial8250: ttyS1 at I/O 0xe8000100 (irq = 8) is a 16550
+RAMDISK driver initialized: 16 RAM disks of 16384K size 4096 blocksize
+loop: module loaded
+I AM USING NCSI
+eth0 : MAC Address 0:25:90:6e:33:c3
+eth0: at Base: 0xe0003000 RX_IRQ: 17  TX_IRQ: 18
+Ractrends Flash mapping: 0x1000000 at 0x40000000
+Probing for Flash at Bank # 0
+SPI: probing for intel s33 devices ...
+SPI: probing for atmel devices ...
+SPI: probing for m25pxx devices ...
+Found SPI Chip Macrox 
+MTD Partition 0 : fullpart @ 0x0 of Size 0x1000000
+MTD Partition 1 : params @ 0x60000 of Size 0xf0000
+MTD Partition 2 : root @ 0x170000 of Size 0x730000
+MTD Partition 3 : www @ 0xe20000 of Size 0x1b0000
+Creating 4 MTD partitions on "Ractrends":
+0x00000000-0x01000000 : "fullpart"
+0x00060000-0x00150000 : "params"
+0x00170000-0x008a0000 : "root"
+0x00e20000-0x00fd0000 : "www"
+block2mtd: version $Revision: 1.30 $
+ip_tables: (C) 2000-2006 Netfilter Core Team
+TCP cubic registered
+NET: Registered protocol family 1
+NET: Registered protocol family 10
+lo: Disabled Privacy Extensions
+NET: Registered protocol family 17
+RPC: Registered udp transport module.
+RPC: Registered tcp transport module.
+802.1Q VLAN Support v1.8 Ben Greear <greearb@candelatech.com>
+All bugs added by David S. Miller <davem@redhat.com>
+RAMDISK: cramfs filesystem found at block 0
+RAMDISK: Loading 7308KiB [1 disk] into ram disk... done.
+VFS: Mounted root (cramfs filesystem) readonly.
+Root-NFS: No NFS server available, giving up.
+VFS: Unable to mount root fs via NFS, trying floppy.
+VFS: Mounted root (cramfs filesystem) readonly.
+Trying to move old root to /initrd ... okay
+Freeing init memory: 104K
+Helper Module Driver Version 1.1
+Copyright (c) 2006 American Megatrends Inc.
+gpio: module license 'American Megatrends Inc.' taints kernel.
+Done..The GPIO Driver loaded.
+LPC/KCS/Port80 Driver Version 1.0
+Copyright (c) 2007 American Megatrends Inc.
+Register Snoop device
+LPC Reset Interrupt. Reinitializing KCS 
+VNC Video Capture Driver Version 1.1
+Copyright (c) 2007 American Megatrends Inc.
+VCD Mapped Base is 0xe0010000
+vcdlib_Initialise()
+
+VCD Finished Initialization
+Virutal Capture Buffer = c03dd000
+Physical Buffer pointer = 3dd000
+i2c /dev entries driver
+I2C Reset 
+i2c_adapter i2c-0: Hardware routines registered
+Registered bus id: i2c-0
+I2C Reset 
+i2c_adapter i2c-1: Hardware routines registered
+Registered bus id: i2c-1
+I2C Reset 
+i2c_adapter i2c-2: Hardware routines registered
+Registered bus id: i2c-2
+I2C Reset 
+i2c_adapter i2c-3: Hardware routines registered
+Registered bus id: i2c-3
+I2C Reset 
+i2c_adapter i2c-4: Hardware routines registered
+Registered bus id: i2c-4
+I2C Reset 
+i2c_adapter i2c-5: Hardware routines registered
+Registered bus id: i2c-5
+HERMON ADC Driver Version 1.0
+Copyright (c) 2007 American Megatrends Inc.
+Initializing USB Devices
+USB Device Endpoint Driver 
+Copyright 2006 American Megatrends Inc.
+ EQH Address wb11_ep_dQH_ptr0=ffc16000, pa_wb11_ep_dQH_ptr1=65d0000
+ dTD0 phy address = 65d0180
+ dTD1 phy address = 65d01a0
+ buff-ptr0 phy address = 65d1000
+ buff-ptr1 phy address = 65d2000
+ pa_wb11_ep_dTD_ptr_Ep1In = 65d01c0
+ pa_wb11_ep_dTD_ptr_EP2In = 65d01e0
+ wb11_pa_wb11_buffer_ptr_Ep1In = 65d3000
+ wb11_pa_wb11_buffer_ptr_Ep2In = 65d4000
+ list address reg = 65d0000
+WBUSB11_AllocBuffer called for Ep = 0 
+Is Head List alligned 2k boundary and dQh at 64 byte , ep_dQH_ptr0 = ffc1b000 and ep_dQH_ptr1 = ffc1b040 , pa_ep_dQH_ptr0 = 65d6000 
+Is Head List alligned 2k boundary and dQh at 64 byte , ep_dQH_ptr_Ep1Out = ffc1b080 and ep_dQH_ptr_Ep1In= ffc1b0c0 , 
+ dTD0 phy address = 65d7000
+ dTD1 phy address = 65d8000
+ buff-ptr0 phy address = 65dc000
+ buff-ptr1 phy address = 65dd000
+ pa_ep_dTD_ptr_Ep1In = 65d9000
+ pa_ep_dTD_ptr_EP1Out = 65db000
+ pa_buffer_ptr_Ep1In = 65de000
+ pa_buffer_ptr_Ep1Out = 65e6000
+Add = b0005000 
+Base Add = c7896000  
+ Stop controller 
+WBUSB20_Init(): device got reset
+ list address reg = 65d6000
+WBUSB20_AllocBuffer called for Ep = 0 dir 3 
+
+ WBUSB11_Enable...  USBINTR_REG = 47
+
+ WBUSB20_Enable...  USBINTR_REG = 47
+ Soft Connect(run) HID usb
+USB Driver is Successfully Initialized
+NCSI Interface Driver Version 1.0
+Copyright (c) 2007 American Megatrends Inc.
+eth0: Resetting ...
+Open link:1 Opmode:1 duplex:1
+ NCSI: NetDev Up Event for eth0
+NCSI: NetDev Up Event for eth0
+smcdrv Driver is loaded successfully.
+HERMON WDT Driver Version 1.0
+Copyright (c) 2007 American Megatrends Inc.
+NCSI(eth0): Expected Response Size = 46 Got 50
+Ex NCSI(eth1): Link is Down
+Link:0 Opmode:1 duplex:1
+ int_num=4, set_value=2000, clr_value=ffffdfff, dir_clr_value=ffffdfff
+int_num=4, set_value=4000, clr_value=ffffbfff, dir_clr_value=ffffbfff
+eth0: no IPv6 routers present
+
+Mouse Mode is ABSOLUTE
+MOUSE_ABS_TO_REL 
+changeMouseAbs2Rel() 
+ Soft Disconnect(stop) usb
+Bus Reset..... 
+GetHidDesc_Mouse 
+ Soft Connect(run) HID usb
+ [KERNDEBUG] Reinitializing Driver
+ [KERNDEBUG] vma_open() Called
+Videocap: Capture Engine is already off
+Resolution Got is 640 * 480
+ [KERNDEBUG] vma_open() Called
+ [KERNDEBUG] vma_close() Called
+ Soft Disconnect(stop) usb
+in smcdrv ioctl option=READ_REG32
+ReadReg32=22
+in smcdrv ioctl option=WRITE_REG32
+Bus Reset..... 
+Bus Reset..... 
+Usb SetAddress Called for device 0 with Addr 2 
+WBUSB11_AllocBuffer called for Ep = 0 
+WBUSB11_AllocBuffer called for Ep = 1 
+WBUSB11_AllocBuffer called for Ep = 2 
+Set Report called 
+non Setup Packet 
+ERROR: BotSendCSW(): Waiting for Bot UnHalted Timed out
+Error in Sending CSW for EP1
+ Soft Disconnect(stop) usb
+ Soft Disconnect(stop) usb
+NCSI(eth0): Link is Down
+Ex NCSI(eth1): Link is Down
+Link:0 Opmode:1 duplex:1
+ Bus Reset..... 
+Bus Reset..... 
+Bus Reset..... 
+Usb SetAddress Called for device 0 with Addr 2 
+WBUSB11_AllocBuffer called for Ep = 0 
+WBUSB11_AllocBuffer called for Ep = 1 
+WBUSB11_AllocBuffer called for Ep = 2 
+Set Report called 
+non Setup Packet 
+NCSI(eth0): Link is Up
+NCSI(eth0): 1000Base-T Full Duplex
+NCSI(eth1): Link is Up
+NCSI(eth0): 1000Base-T Full Duplex
+Link:1 Opmode:1 duplex:1
+ NCSI(eth0): Link is Down
+Ex NCSI(eth1): Link is Down
+Link:0 Opmode:1 duplex:1
+ NCSI(eth0): Link is Up
+NCSI(eth0): 1000Base-T Full Duplex
+NCSI(eth1): Link is Up
+NCSI(eth0): 1000Base-T Full Duplex
+Link:1 Opmode:1 duplex:1
+</blockquote>
+</pre>
+
+
+</BODY>
+</HTML>

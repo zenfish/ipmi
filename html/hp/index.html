@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>HP notes</title>
+
+</head>
+
+<div>
+A few notes on HP's iLO.
+
+<p>
+
+You may get some interesting information about an iLO by using (at least)
+the following URLs (replace 10.x.x.x with the actual IP address of the iLO) -
+no authentication is required:
+
+<p>
+
+<blockquote>
+<pre>
+# <b>curl -k 'https://10.0.0.1/xmldata?item=All'</b>
+&lt;RIMP&gt;
+&lt;HSI&gt;
+&lt;SBSN&gt;USE235D0M5&lt;/SBSN&gt;
+&lt;SPN&gt;ProLiant DL360 G7&lt;/SPN&gt;
+&lt;UUID&gt;579237USE235xxxx&lt;/UUID&gt;
+&lt;SP&gt;1&lt;/SP&gt;
+&lt;cUUID&gt;32393735-3733-5355-4532-33354430xxxx&lt;/cUUID&gt;
+&lt;VIRTUAL&gt;
+&lt;STATE&gt;Inactive&lt;/STATE&gt;
+&lt;VID&gt;
+&lt;BSN&gt;&lt;/BSN&gt;
+&lt;cUUID&gt;&lt;/cUUID&gt;
+&lt;/VID&gt;
+&lt;/VIRTUAL&gt;
+&lt;/HSI&gt;
+&lt;MP&gt;
+&lt;ST&gt;1&lt;/ST&gt;
+&lt;PN&gt;Integrated Lights-Out 3 (iLO 3)&lt;/PN&gt;
+&lt;FWRI&gt;1.61&lt;/FWRI&gt;
+&lt;BBLK&gt;02/18/2010&lt;/BBLK&gt;
+&lt;HWRI&gt;ASIC: 9&lt;/HWRI&gt;
+&lt;SN&gt;ILOUSE235xxxx      &lt;/SN&gt;
+&lt;UUID&gt;ILO579237USE235xxxx&lt;/UUID&gt;
+&lt;IPM&gt;1&lt;/IPM&gt;
+&lt;SSO&gt;0&lt;/SSO&gt;
+&lt;PWRM&gt;1.6&lt;/PWRM&gt;
+&lt;/MP&gt;
+&lt;/RIMP&gt;
+</pre>
+</blockquote>
+
+<div>
+
+<p>
+In addition, using a slightly different URL returns license information:
+</p>
+</div>
+
+<p>
+
+<blockquote>
+<pre>
+# <b>curl -k 'https://15.224.224.40/xmldata?item=CpqKey'</b>
+&lt;?xml version="1.0"?&gt;
+&lt;PROLIANTKEY&gt;
+&lt;KVER&gt;1&lt;/KVER&gt;
+&lt;LTYPE&gt;FQL&lt;/LTYPE&gt;
+&lt;LNAME&gt;iLO 3 Advanced&lt;/LNAME&gt;
+&lt;IDATE&gt;Wed Oct 23 13:05:29 2013&lt;/IDATE&gt;
+&lt;KEY&gt;32QTD-29GK8-5Y28R-LYNB9-95RB2&lt;/KEY&gt;
+&lt;SN&gt;ILOUSE235D0M5      &lt;/SN&gt;
+&lt;SBSN&gt;USE235D0M5      &lt;/SBSN&gt;
+&lt;/PROLIANTKEY&gt;
+</pr>
+</blockquote>
+
+</body>
+</html>
+

@@ -1,0 +1,268 @@
+<HTML>
+<HEAD>
+<TITLE>IPMI Bilbiography++</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF">
+
+<p>
+
+<center>
+<h4>IPMI & related resources</h4> <i>(last update 1/6/13)</i>
+</center>
+
+<p>
+
+I'm refraining from vendor-specific items unless they're of particular note; I've
+put a few at the section at the end.
+
+<h4> General IPMI </h4>
+
+Start with the source; Intel has put out a variety of documents; in
+particular the IPMI specifications, for 1.5 and 2.0 (484 and 644 pages
+of deathless prose, respectively) and the IPMI CIM Mapping Guideline
+were invaluable:
+
+<p>
+<li><a href="http://www.intel.com/design/servers/ipmi/spec.htm"> IPMI spex - all versions</a>
+<p>
+<li><a href="http://download.intel.com/design/servers/ipmi/mapguide.pdf"> IPMI/CIM Mapping guide</a>
+<p>
+
+There's a detailed (but not complete) fairly technical writeup on IPMI basics 
+by Corey Minyard <minyard@acm.org> in 2006 <p>
+
+<li><a href="http://openipmi.sourceforge.net/IPMI.pdf">IPMI - A Gentle Introduction with OpenIPMI</a>.
+
+<p>
+
+It's hard to understand IPMI/BMC land without some knowledge of
+flash - NOR is a "random access device appropriate for
+code storage application", while NAND is better for storage (you
+can't directly execute code from NAND disk -it "must be loaded
+into RAM memory and executed from there." <P>
+
+<li>NAND vs. NOR flash - a <a href="http://www.linux-mtd.infradead.org/archive/tech/nand.html">Flashy writeup</a>
+
+<p>
+
+MTD - memory technology device; an abstraction layer for raw flash devices
+(NAND, NOR, etc.)  Some very useful background information on MTD:<p>
+
+<li><a href="http://www.linux-mtd.infradead.org/">http://www.linux-mtd.infradead.org/</a>
+
+<p>
+Jarrod B Johnson, Raleigh/IBM@IBMUS. Private communications. Especially
+invaluable for telling me about the dangers of Cipher Zero as well
+as passwords being stored as plaintext on the BMC.
+
+<h4> Security </h4>
+
+HD Moore put together 
+<a href="https://community.rapid7.com/community/metasploit/blog/2013/07/02/a-penetration-testers-guide-to-ipmi">a really fine set</a>
+of methods to exploit various issues with IPMI.  Required reading for some of the dangers.
+
+<h4> Software </h4>
+
+Four very high quality IPMI software packages: freeipmi, ipmitools,
+ipmiutils, and openipmi; in addition to the software they have some
+excellent documentation, write-ups and details about the world of IPMI.
+While perhaps not possessing the most imaginative of names They're all
+worth checking out:
+
+<p>
+<ul>
+<li> <a href="http://openipmi.sourceforge.net/">OpenIPMI</a>
+<li> <a href="http://www.gnu.org/software/freeipmi/">FreeIPMI</a>
+<li> <a href="http://ipmiutil.sourceforge.net/home.htm">IPMIutil</a>
+<li> <a href="http://ipmitool.sourceforge.net/">IPMItool</a>
+</ul>
+
+<p>
+
+FreeIPMI in particular has amazing documentation and is used in many
+vendor offerings.  Finally, there's a
+<a href="http://ipmiutil.sourceforge.net/docs/ipmisw-compare.htm">really nice (and fair) comparison</a>
+of them on sourceforge written by one of the authors.
+
+<p>
+
+I used a ton of tools, way too many to mention more than a few. On any
+sort of unix/linux variant strings is just such a frickin' great tool...
+use that on any binaries along with "hexdump -C"; strace is also godly.
+<p>
+<a href="http://code.google.com/p/binwalk/">Binwalk</a>
+and the 
+<a href="http://code.google.com/p/firmware-mod-kit/">firmware-mod-kit</a>
+were also useful in unraveling some details.  Luigi's 
+<a href="http://aluigi.altervista.org/mytoolz.htm">signsrch</a> provided
+some color commentary (windows only, but could run via wine; e.g. - i
+"wine ~/signsrch.exe binary.file".)
+<a href="http://wiki.qemu.org/Main_Page">Qemu</a> was invaluable for
+emulating some Arm processor things and 
+<a href="http://www.dosbox.com/">DosBox</a>
+saved me from having to dig out the ol' DOS floppies (DOS may never die;
+assorted low-level system vendor programs still run via DOS.)    With the
+exception of DosBox and the 4 IPMI utilities up there just about every
+tool had terrible documentation or was difficult to get working on most
+of the systems I had (Qemu in particular would be even more astonishing
+it would only run correctly.)
+
+<p>
+
+<h4>Mac Tools</h4>
+
+<ul>
+
+<li><a href="">Wine</a> was great for running the odd windows executable.
+<li><a href="">DosBox</a> - a really impressive DOS emulator for running 
+	tools meant for floppyhood or whatever.
+
+</ul>
+
+<h4>(mostly) Linux Tools</h4>
+
+<ul>
+
+<li> MTD utils.  The very useful but
+so-appallingly-documented-that-you-can't-belive-it-was-written-by-
+anyone-with-a-desire-to-communicate-with-other-humans MTD utils, Several
+Linux distros seem to have this as a package; source code avail at
+git://git.infradead.org/mtd-utils.git.
+
+<li> <a href="http://lm-sensors.org/">lm-sensors.</a>
+Finding out about the hardware and helping monitoring computers thingee.
+Hint - just type sensors-detect and follow orders.
+
+
+<li> <a href="http://http://www.flashrom.org/Flashrom/">flashrom.</a>
+Identifying, reading, writing, etc. flash chips.  This is a pretty
+damn cool tool.  And another in a long line of so poorly documented 
+utilities you think they don't want you know how to use them tools.
+It used to be easy - "flashrom -r /tmp/foo" would dump your flash into
+that file name.  Now they require you to specify all kinds of crap
+on the command line and have pretty much zero examples of how most
+people might use the tool and a man page that is... well, a man page.
+They specifically say don't write shell scripts to use the tool because
+the options will change again.  How friendly.  If version .94 works
+on your system you might try that.  A really interesting tool nearly
+destroyed by unbelievably poor documentation for the beginner.
+
+</ul>
+
+<p>
+
+<h4>Mucking with firmware, assorted links, papers, etc.</h4>
+
+IPMI stuff is all about embedded systems; a really nice intro to such things
+is Christopher Hallinan's book, which is simply an excellent book, especially
+for modestly technical beginner's such as myself:<p>
+ 
+<li> <a href="http://www.amazon.com/Embedded-Linux-Primer-Practical-Real-World/dp/0137017839">Embedded Linux Primer: A Practical Real-World Approach</a> 
+
+<p>
+<li><a href="http://www.alchemistowl.org/arrigo/Papers/Arrigo-Triulzi-PACSEC08-Project-Maux-II.pdf">Project Maux Mk.II</a>
+(And Mk III as well.)  A talk on to install SSH on a NIC card.
+Arrigo Triulzi arrigo@sevenseas.org (Arrigo's homepage: http://www.alchemistowl.org/arrigo/)
+
+<p>
+
+<h4>Additional reading</h4>
+
+<li><a href="http://www.sans.org/thought-leaders/bill_johnson_tdi">Interview with Bill Johnson, who talked about IPMI back in '08:</a><p>
+
+Details on SMI/SMM:<p>
+
+<li><a href="http://en.wikipedia.org/wiki/System_Management_Mode">Wiki page on SMM/SMI</a><p>
+
+<li>
+<a href="http://cs.gmu.edu/~tr-admin/papers/GMU-CS-TR-2011-8.pdf">An Analysis of System Management Mode (SMM)-based Integrity Checking Systems and Evasion Attacks</a>, J. Wang, K. Sun, and A. Stavrou, a GMU technical report.
+
+<p>
+
+A paper that discusses using IPMI to generate SMIs to enter into SMM mode:<p>
+
+<li><a href="http://discovery.csc.ncsu.edu/pubs/ccs10.pdf">HyperSentry: Enabling Stealthy In-context Measurement of Hypervisor Integrity</a>,
+by A.M. Azab et al.  Unfortunately the exact method used to generate SMIs
+from the BMC was received under an NDA from IBM (private communication
+with A.M. Azab.)
+
+<p>
+
+CERN used a set of programs to generate daily random IPMI passwords to
+manage just under 2,000 servers - a nice writeup here:<p>
+
+<li><a href="https://twiki.cern.ch/twiki/bin/viewfile/FIOgroup/IpmiRef?rev=1;filename=ipmicern.pdf">Using the Intelligent Platform Management Interface (IPMI) at the LHC GRID</a>, by Hugo J. M. Cacote & M. Masi, 2007.
+
+<p>
+
+A nice overview of <strong>AMT</strong> security (the IPMI-like thing in PCs and such is in 
+Vassilios Ververis' <p>
+
+<li><a href="http://kth.diva-portal.org/smash/get/diva2:508256/FULLTEXT01">"Security Evaluation of Intel's Active Management Technology"</a>.
+
+<p>
+
+Joanna Rutkowska on using a USB stick to compromise encryption keys in general is worth 
+reading; she dubbed it:<p>
+
+<li><a href="http://theinvisiblethings.blogspot.com/2009/10/evil-maid-goes-after-truecrypt.html"> the Evil Maid Attack</a>,
+
+<p>
+
+There are many references and tools to aide in USB sniffing; here are
+some Linux references, but typing "USB sniffing" in any search
+engine will get lots of others.<p>
+
+<li><a href="http://www.linux-usb.org/tools.html">Linux USB tools</a>
+
+<p>
+
+Forensics and flash, a match made in heaven; from SMALL SCALE DIGITAL
+DEVICE FORENSICS JOURNAL, VOL. 1, NO. 1, JUNE 2007; Marcel Breeuwsma,
+Martien de Jongh, Coert Klaver, Ronald van der Knijff and Mark
+Roeloffs:<p>
+
+<li><a href="http://www.ssddfj.org/papers/SSDDFJ_V1_1_Breeuwsma_et_al.pdf">Forensic Data Recovery from Flash Memory</a>
+
+
+<p>
+
+<li><a href="msdn.microsoft.com/en-us/magazine/cc163310.aspx">Lessons Learned from Five Years of Building More Secure Software</a>, 
+M. Howard, 11/2007 MSDN Magazine.
+
+<p>
+
+<li><a href="research.microsoft.com/pubs/79177/milkorwine.pdf">Milk or Wine: Does Software Security Improve with Age</a> A. Ozment and S. Schecter, 2007 USENIX Security 
+
+<h4> Vendor stuff </h4>
+
+I've downloaded many BMC ROMs and have read through more vendor manuals and than I can count.  Here are a few highlights.
+
+<p>
+
+Dell's security overview for iDRAC 6:<p>
+
+<li><a href="http://support.dell.com/support/edocs/software/smdrac3/idrac/idrac17mono/en/wp/iDRAC6Security.pdf">Integrated DellTM Remote Access Controller 6 Security</a>
+
+<p>
+
+HP's security overview for iLO 3:<p>
+
+<li><a href="http://h20000.www2.hp.com/bizsupport/TechSupport/DocumentIndex.jsp?lang=en&cc=us&contentType=SupportManual&prodTypeId=18964&prodSeriesId=4154735#3"> The HP Integrated Lights-Out Security, 7th edition,</a>
+
+<p>
+
+Darren Cepulis/HP's patent application has some interesting details on
+using SMIs with virtual disks (and quite possibly sheds some light on
+how HP implements such things in iLO.)<p>
+
+<li><a href="http://www.google.com/patents?id=tNuqAAAAEBAJ&amp;printsec=abstract&amp;zoom=4#v=onepage&amp;q&amp;f=false">"System ROM with an embedded disk image"</a><br>
+
+<p>
+
+Supermicro got into the game with a one-page Best Practices guide -<p>
+
+<li><a href="http://www.supermicro.com/products/nfo/files/IPMI/Best_Practices_BMC_Security.pdf">Best Practices for managing servers with IPMI features enabled in Datacenters</a><br>
+
+
+

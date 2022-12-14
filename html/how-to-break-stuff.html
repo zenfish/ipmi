@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>How to compromise a server, IPMI, or BMC through one of the other 2</title>
+
+   <!-- from the marvelous http://1kbgrid.com/ -->
+        <link href="css/grid.css" type="text/css" rel="stylesheet" media="screen"/>
+        <style type="text/css" media="screen">
+                body { margin: 10px 0 0 0; }
+                p.grid {
+                        font-family: Georgia, "Times New Roman", Times, serif;
+                        color: #000;
+                        margin: 0 0 10px 0;
+                }
+   </style>
+
+   <!-- http://designshack.net/articles/css/5-simple-and-practical-css-list-styles-you-can-copy-and-paste/ -->
+   <link rel="stylesheet" href="css/hmenu.css" type="text/css">
+   <!-- http://twistedintellect.com/ -->
+   <link rel="stylesheet" href="css/twisty.css" type="text/css">
+
+   <!-- http://pythoughts.com/table-style-css/ -->
+   <link rel="stylesheet" href="css/table.css" type="text/css">
+
+   <style>
+      /* http://hellodirty.com/post/30281359285/how-can-i-add-a-background-image-to-masonite-theme-i */
+      body {
+         background-image: url(http://subtlepatterns.com/patterns/vintage_speckles.png);
+         background-repeat: repeat; /* no-repeat/repeat-x/repeat-y */
+         background-position: 0 0; /* 100%/300px/left/center/right 100%/300px/top/center/bottom */
+      }
+
+
+   .p_box          { border: 1px solid #000; padding: 5px; background-color: #E6E6CE;}
+   </style>
+
+</head>
+<body>
+
+<div class="row">
+        <div class="column grid_12">
+      <nav>
+         <ul style="list-style-type: none;">
+            <li class="active navi"><a href="/ipmi">IPMI</a></li>
+            <li class="navi">       <a href="http://trouble.org">trouble</a></li>
+            <li class="navi">       <a href="/security">security</a></li>
+         </ul>
+      </nav>
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2"><p></p></div>
+   <div class="column grid_6">
+      <p style="margin-top: 20px; margin-bottom: 0px; text-align: center; border: 1px solid #000;" class="grid styley">Breaking Bad</p>
+   </div>
+</div>
+
+<div class="row">
+
+
+<div class="row">
+   <div class="column grid_2">
+      <p class="styley p_box">Back to Basics</p>
+   </div>
+
+   <div class="column grid_10">
+   
+   <p style="margin-top: 20px;" class="grid">
+   <strong> Note from author: the start of a real document; updating ASAP </strong>
+
+   <p style="margin-top: 20px;" class="grid">
+
+   I'm not a pen tester, but there are some concepts that might be a
+   bit unusual WRT the relationships between the IPMI trinity of the
+   server, the BMC, and the IPMI protocol.  I'll use "root" as a slang
+   for an administrative account on any of the three, and when I say
+   IPMI I'm referring to the vendor-supplied server management interface
+   (iDRAC, iLO, etc.) that probably has a lot of other features not in
+   the IPMI spec.  I think that hardware hackers will find a field day
+   with this one.
+
+   </p> <p>
+
+   If you can get root on the server you have root on IPMI, because you
+   toot accounts on a server can create local administrative IPMI accounts
+   without any additional authentication (you can't typically extract
+   passwords, however.)  If you have root on IPMI you can control the
+   server - the most straightforward way is illustrate this is to simply
+   reboot the system onto media of your choice and mount the local drives;
+   you may then install a new account, a new OS, or do whatever you wish - 
+   after all, provisioning servers is one of the basic uses of IPMI.
+   And if you have root on the BMC you have control of IPMI and also by
+   proxy the server (I'll ignore more devious ways of control for now.)
+
+   </p> <p>
+
+   The part that isn't so certain is how to compromise the BMC.  Of course
+   my Supermicro (SM) simply gave me a root prompt after I enabled IPMI
+   and logged in via SSH - you may as well see if the front door is open
+   or not. (And if you have physical access to the server you can try
+   any number of physical attacks or data extraction; out of the scope
+   of this little doc.)  In general shell access can be leveraged to get
+   root on a system, but the security of BMC's that 've seen have been
+   so poor it suggests that pretty much everything runs as root anyway,
+   so any time you can execute a command you'll control the BMC.
+
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2">
+      <p class="styley p_box">Run flash, run! </p>
+   </div>
+
+   <div class="column grid_10">
+   
+   <p style="margin-top: 20px;" class="grid">
+
+   Most server vendors make flash images for BMCs freely available
+   on their web sites.  It can be highly instructional and useful to
+   download an image for the BMC in question (ideally the same version)
+   and unpack the image (there is a lot on the net about this, and some
+   good tools.  I reference some in my bibliography but the wifi hacker
+   crowd has some fine examples and writeups on this.)  This is
+   what I personally did to compromise the BMC on my Dell.
+
+   <p>
+
+   The flash contains the bootloader and operating system that the BMC
+   uses to boot (configuration data, passwords, and additional data and
+   programs are hidden inside as well.)  If you can unpack it you have
+   an excellent roadmap for an attack strategy.
+
+   </p> <p>
+
+   An interesting facet of flash images is that BMC's running the same
+   image are all the same, so if you can compromise one in the lab you
+   should be able to compromise one in the wild. This is because you
+   can't really configure or remove services on the BMC as you would do
+   in a real operating system - even if services are disabled they're
+   simply dormant, waiting to be re-enabled.  So any vulnerable service
+   opens up opportunities on large numbers of other servers.  There is
+   generally no patching of a vulnerability - instead an entirely new
+   flash image is installed, from the boot loader on down.
+
+   </p>
+
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2">
+      <p class="styley p_box">Nothing but net </p>
+   </div>
+
+   <div class="column grid_10">
+   
+   <p style="margin-top: 20px;" class="grid">
+
+   You'll want to ensure you can talk to the BMC and/or IPMI.  If you can,
+   ignore this, but if you cannot....
+
+   </p> <p>
+
+   IPMI has three basic ways of communicating to the outside world -
+   via the vendor's web interface, via UDP port 623 on the BMC's network
+   interface, and when logged into the server it's attached to via kernel
+   interfaces (this may have to be enabled.)
+
+   </p>
+
+   <li>
+
+   If IPMI is using VLANs either disable it or make it use the same VLAN
+   as the server.
+
+   </li><li>
+
+   If you're on a different network than IPMI or the BMC (e.g. its network
+   jack is on a different network you can't directly access) then use IPMI
+   (via web or command line) to change the IP number and network interface
+   that the BMC is listening to; match either the same interface as the
+   server or another interface that shares a network you can talk to
+   (many servers have 3 or more jacks; 2 redundant on the main server
+   net and one for the management net.)  This should in theory allow
+   you to communicate, but it might take a reboot or network trickery
+   to get a server to communicate to its BMC - you may have to use a
+   3rd machine to communicate to the server's BMC because the vendor
+   refuses to allow the server to directly communicate to its BMC.
+
+   </li><li>
+
+   Turn on all the network services that the BMC offers.  Keep in mind
+   that all of those things are running on the BMC - if you can find a 
+   vulnerability in the web interface or any of the other network services
+   you can potentially get shell access to the BMC.
+
+   </li>
+
+   </ul>
+
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2">
+      <p class="styley p_box">Talking turkey </p>
+   </div>
+
+   <div class="column grid_10">
+   
+   <p style="margin-top: 20px;" class="grid">
+
+   Of course, if you don't already know, find out the OS and if possible
+   the IPMI versions and vendor on the firmware side.  Nmap, probing,
+   prodding, looking at the web UI should tell you this much.
+
+   </p> <p>
+
+   Run any scanners you can to see if an automated attack can be found either
+   against the web interface or against the running network services.
+
+   </p> <p>
+
+   <i> TBD - need to finish putting in my notes!</i>
+
+   </p>
+
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2">
+      <a name="mind_the_gap"> <p class="styley p_box">Mind the gap</p></a>
+   </div>
+
+   <div class="column grid_10">
+   
+   <p style="margin-top: 20px;" class="grid">
+
+   A test from the lab; assuming a shared interface between server and BMC, can
+   (a) they sniff each other's network traffic, and (b) talk to the other on
+   the same interface (e.g. ping, etc.)
+   </p>
+
+		<table class="padded" id="table_light">
+		<thead><tr>
+		<th><strong>Vendor</strong></th>
+		<th><strong>Which</strong></th>
+      <th><strong>Sniff other's network?</strong></th>
+      <th><strong>Connect?</strong></th>
+
+		</tr></thead>
+
+		<tr> <td> Dell </td> <td> R710 </td> <td> Yes </td> <td> No </td> </tr>
+		<tr> <td> Dell </td> <td> R710's BMC </td>  <td> No </td> <td> No </td> </tr>
+
+		<tr> <td> HP </td> <td> ML150 G6 </td> <td>   </td> <td> </td> <td>   </td></tr>
+		<tr> <td> HP </td> <td> ML150's BMC </td>      <td>   </td> <td> </td> <td>   </td></tr>
+
+		<tr> <td> Silicon Mechanics+Supermicro </td> <td> xxx </td> <td>    </td> <td>    </td> </tr>
+		<tr> <td> Silicon Mechanics+Supermicro </td> <td> BMC </td> <td> no </td> <td> no </td> </tr>
+
+		</tr>
+		
+		</table>
+
+   <i>[...] need to type in my notes here, TBD!</i>
+		
+   </div>
+
+</div>
+
+</body>
+</html>
+		

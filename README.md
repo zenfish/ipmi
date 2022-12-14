@@ -2,8 +2,13 @@
 I wrote some software to explore IPMI; here are some of results.  I thought I'd 
 do the usual detect, get data, and audit sort of cycle.  Each of these turned
 out to be fairly interesting problem on its own, at least to me.
+</p>
 
-</p> <p>
+<h4>IPMI web site</h4>
+
+The papers n things from fish2.com/ipmi
+
+<a href="html/">
 
 <h4>Password Cracking</h4>
 

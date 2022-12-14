@@ -1,0 +1,374 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>All the IPMI that's fit to print</title>
+
+   <!-- from the marvelous http://1kbgrid.com/ -->
+	<link href="/ipmi/css/grid.css" type="text/css" rel="stylesheet" media="screen"/>
+	<style type="text/css" media="screen">
+		body { margin: 10px 0 0 0; }
+		p.grid {
+			font:60px/100px Helvetica;
+			color: #000;
+			text-align: center;
+			border: 1px solid #000;
+			margin: 0 0 10px 0;
+		}
+   </style>
+
+   <!-- http://designshack.net/articles/css/5-simple-and-practical-css-list-styles-you-can-copy-and-paste/ -->
+   <link rel="stylesheet" href="/ipmi/css/hmenu.css" type="text/css">
+   <!-- http://twistedintellect.com/ -->
+   <link rel="stylesheet" href="/ipmi/css/twisty.css" type="text/css">
+
+   <!-- http://pythoughts.com/table-style-css/ -->
+   <link rel="stylesheet" href="/ipmi/css/table.css" type="text/css">
+
+   <!-- additional style hacks because I don't know css -->
+   <style>
+      a:link {color:#00009D; text-decoration: underline; }
+      a:visited {color:#4682B4; text-decoration: underline; }
+
+      .stylish {
+         color: #424242;
+         font-family: "Adobe Caslon Pro", "Hoefler Text", Georgia, Garamond, Times, serif;
+         letter-spacing:0.1em;
+         text-transform: lowercase;
+         font-size: 10pt;
+         font-variant: small-caps;
+      }
+
+      .p_box          { border: 1px solid #000; padding: 5px; background-color: #E6E6CE;}
+      .grid_3_padded  { width:240px; padding-left: 40px; }
+      .grid_6_padded  { width:510px; padding-left: 20px; }
+      .grid_7_padded  { width:600px; padding-left: 20px; }
+      .grid_10_padded { width:870px; padding-left: 20px; }
+
+      /* http://demo.marcofolio.net/css_lists/ */
+      #listx { color:#000; }
+      #listx ol li ol { list-style-image: url("images/xnested.png"); padding:10px 0 10px 18px; font-size:15px; }
+      #listx ol li ol li { color:#000; height:20px; margin-left:15px; }
+
+      /* http://hellodirty.com/post/30281359285/how-can-i-add-a-background-image-to-masonite-theme-i */
+      body {
+         font-family: Georgia, "Times New Roman", Times, serif;
+         background-image: url(http://subtlepatterns.com/patterns/vintage_speckles.png);
+         background-repeat: repeat; /* no-repeat/repeat-x/repeat-y */
+         background-position: 0 0; /* 100%/300px/left/center/right 100%/300px/top/center/bottom */
+      }
+	</style>
+
+</head>
+
+<body>
+<div class="row">
+	<div class="column grid_12">
+      <nav>
+         <ul style="list-style-type: none;">
+            <li class="active navi"><a href="#">IPMI</a></li>
+            <li class="navi">       <a href="http://trouble.org">trouble</a></li>
+            <li class="navi">       <a href="/security">security</a></li>
+         </ul>
+      </nav>
+   </div>
+</div>
+
+<div class="row">
+	<div class="column grid_3"> <p> </p></div>
+	<div class="column grid_9"><p class="grid styley">In Which I Savagely Impugn the Honor and Monoculture of IPMI <span class="amp">&</span> its Friends</p>
+</div>
+
+<div class="row">
+
+	<div class="column grid_2"> 
+      <p class="styley p_box">IPMI+ Security Paper</p>
+   </div>
+
+	<div class="column grid_10_padded">
+
+      <p style="color:red"><i>Jan 19th, 2021 - small update</i></p>
+            <p>
+            Spurred on by someone asking questions... it's been awhile
+            since I've seriously looked at IPMI, but I poke at it from
+            time to time... TLDR; not much has changed. Except....
+
+            <p>
+           - Redfish is a new OOB management standard and has come along
+             as a potential successor to IPMI. Unfortunately, however, IPMI
+             is still in every server... so instead of getting rid of it and
+             replacing it with Redfish... you now have both Redfish and IPMI
+             running in tandom. Adding additional attack surface and complexity
+             to the guts of a server really isn't helping things out....
+            </p>
+
+            <p>
+            - Some vendors have a new, non-standard way (e.g. it isn't
+              in the IPMI standard and I don't know of any who have
+              published their algorithms/methods... what could go wrong?)
+              around the RAKP problem of remotely leaking password hashes;
+              Whether or not they've actually fixed the problem I don't
+              know, but I suppose it's good that some of them at least
+              tried to do something.
+
+            </p>
+
+            <p>
+           - Wikipedia had a pretty good writeup on some of the issues of
+             IPMI security, but some years ago an anonymous contributer
+             (sic) from a DC-area IP address took an ax to it and changed
+             it to read as such:
+
+                <p class="column grid_10_padded">
+                    <i><strong>Latest IPMI specification security
+                    improvements</strong><br> However, this is only of
+                    historical value. The IPMI specification has been
+                    updated with RAKP+ and a stronger cipher that is
+                    computationally impractical to break.  Vendors as
+                    a result have provided patches that remediate these
+                    vulnerabilities.<i>[citation needed]</i></i>
+                </p>
+
+             </p>
+
+             <p>&nbsp;</p>
+
+             Citation needed indeed.  There is no new magic RAKP+ that
+             solves its problems (they added SHA256 support), there
+             is no new spec (the last published in 2015) and there is
+             no IPMI silver bullet; pretty much as bad as it was over
+             a half-dozen years later.  Indeed, some great research
+             and discoveries continue to flow from the IPMI cesspool,
+             including large numbers of security flaws (my personal fav is
+             <a href="https://github.com/ufrisk/pcileech">PCILeech</a>,
+             which can capture RAM using DMA over PCIe, just as I warned
+             about back in the day.)
+
+             </p>
+
+      <p style="color:red"><i>June 4th, 2014 - paper</i></p>
+            <p> A paper (11 pages) surveying IPMI and BMC security on the Internet; version 1.00 (June 4th, 2013): </p>
+            <p>
+            <a href="river.pdf"><span class="stylish" style="margin-left:15px; color:crimson; font-size: 16pt;">Sold Down the River</span></a>
+            </p>
+
+  
+            <p> A modestly lengthy paper (31 pages) on IPMI and BMC security; version 2.01 (August 12th, 2013): </p>
+
+            <p>
+            <a href="itrain.pdf"><span class="stylish" style="margin-left:15px; color:crimson; font-size: 16pt;">IPMI: Freight Train to Hell</span></a>, bloated director's cut.
+            </p>
+
+            <p style="margin-left:35px;"> - or -</p>
+            <p>
+            <a href="itrain-gz.html"><span class="stylish" style="margin-left:15px; color:crimson; font-size: 16pt;">IPMI: Express Train to Hell</span></a> 
+            <em><font size=-1>(one page, G-rated version; <a href="itrain-gz.html">HTML</a>/<a href="itrain-gz.pdf">PDF</a>;)</em>
+            </p> <p>
+
+            The one-page version is the express/single page/reader's
+            digest one; it has various generalities I try to fully explain
+            in the paper or supporting documents.
+
+            <p>
+            <em><a href="/ipmi/old/">(Older material and first version of paper may be found here.)</a></em></p>
+            <p>
+
+            Note #2. HD Moore put together 
+            <a href="https://community.rapid7.com/community/metasploit/blog/2013/07/02/a-penetration-testers-guide-to-ipmi">a really fine set</a>
+            of methods to exploit various issues with IPMI.  Required
+            reading for some of the dangers. Dark times ahead (not
+            because of his work ;))
+
+            <p style="color:red"><i>Serious problem</i></p> Note
+            #3. Zach Wikholm reported a nigh critical vulnerability (also
+            reported last year, and I found about 30K then in a spot scan
+            as well, but it's high time people started actually listening)
+            in about a zillion and one (est :)) SuperMicro BMCs, as few
+            as some interesting other problems. If you have a SM you
+            really need to check this out. Spot checks reveal a LOT of
+            vulnerable BMCs because of recovered passwords - for more see:
+
+            <a href="http://blog.cari.net/carisirt-yet-another-bmc-vulnerability-and-some-added-extras/">Big Trouble in little BMC land</a>
+
+            <p>
+
+            Kudos to Zach for finding these things, and Cari.net for supporting him.
+
+            <p>
+
+            Note #4. Facebook has put out <a href='https://github.com/facebook/openbmc'>OpenBMC</a>, an interesting looking
+            implementation that, in theory, may be placed on BMCs. Problematically most vendors (HP, Dell, IBM, etc.)
+            won't let you install firmware that isn't signed by them... so you're out of luck. Plus, the low-level
+            drivers and so on... who knows. I couldn't get it to build, myself, but let's remain hopeful.
+            If anyone knows of (publically available) hardware that this will actually run on, drop me a line.
+
+            <p>
+
+            <div style="border: 1px solid #DDD;" id="listx">
+               <ol style="list-style-type:none">
+
+                  <li><strong>Feedback</strong>
+                     <ol>
+                        <li>Agree or no, feel free to drop me a line: zen @ either fish2.com or trouble.org.</li>
+                        <li>If you've done development/guts work with IPMI/BMCs and would care to chat, let me know!</li>
+                     </ol>
+                  <li><strong>Q's, FAQs, WTFs</strong>
+                     <ol>
+                        <li> <a href="bp.pdf">IPMI Security Best Practices</a> (Needs update with new version!)</li>
+                        <li> <a href="ipmi_faq.html">IPMI IFAQ (Infrequently (or never)) Asked Questions</a> </li>
+                     </ol>
+                  </li>
+                  <span style="float:right; width: 300px;"><img title="virtual ginsu knife" src="ginsu.png"></span>
+                  <li><strong>Tech Notes/Addendums</strong>
+                     <ol>
+                        <li> <a href="how-to-get-password.html">A few methods to extract or capture an IPMI password</a> </li>
+                        <li> <a href="how-to-break-stuff.html">Notes on breaking into/after IPMI stuff</a> (work in progress)</li>
+                     </ol>
+                  </li>
+                  <li><strong>Misc paper additions</strong>
+                     <ol>
+                        <li> <a href="biblio.html">Bibliography</a> </li>
+                        <li> <a href="testing.html">Test lab</a> </li>
+                     </ol>
+                  </li>
+                  <li><strong>Very small bits of ipmi related software by me</strong>
+                     <ol>
+                        <li> <a href="/ipmi/tools/ztools.html">Tools and tidbits</a> </li>
+                     </ol>
+                  </li>
+
+               </ol>
+            </div>
+
+         </p>
+   </div>
+</div>
+
+<div class="row">
+
+	<div class="column grid_2"> 
+      <p class="styley p_box">Server Vendors</p>
+   </div>
+
+	<div class="column grid_10_padded">
+
+         <p>
+
+         A very small assortment of server vendors, at least to provide
+         some context; if you haven't heard of their version of IPMI,
+         you've at least heard of them, assuming you're reading this
+         on a computer.  Most seem to simply give out the images, which
+         contain the BMC's operating system and basic boot environment,
+         but a few require a service contract or relationship with the 
+         vendor (which I didn't have.)  I had access to the first 3 here,
+         and some sketchy notes to the first 4; clicking the vendor icon
+         to see more.
+
+         <table class="padded" id="table_light">
+         <thead> <tr>
+            <th> <strong>Vendor</strong> </th>
+            <th> <strong>IPMI Flavor</strong> </th>
+            <th> <strong>Latest Version</strong> </th>
+            <th> <strong>BMC Flash Images</strong> </th>
+         </tr> </thead>
+
+         <tr>
+         <td> <a href="/ipmi/dell/"><img style="border:1px solid #8f0404;" src="images/dell-32x32.png" alt="Dell"></a></td><td>iDRAC (Integrated Dell Remote Access Card)</td> <td> iDRAC 7</td><td>Anyone may download</td>
+         </tr>
+         <tr>
+         <td> <a href="/ipmi/hp/"><img style="border:1px solid #8f0404;" src="images/hp-32x32.png" alt="Hewlett Packard"></a></td> <td> iLO (Integrated Lights Out)</td> <td> iLO 4</td><td>Anyone</td>
+         </tr>
+         <tr>
+         <td><a href="/ipmi/supermicro/"><img style="border:1px solid #8f0404;" src="images/supermicro-96x24.png" alt="Supermicro"></a></td> <td> Supermicro Intelligent Management </td> <td> ? (IPMI 2.0) </td><td>Anyone</td>
+         </tr>
+         <tr>
+         <td><a href="/ipmi/lenovo/"><img style="border:1px solid #8f0404;" src="images/lenovo-32x32.png" alt="Lenovo"></a></td><td>IMM?</td> <td>IMM (legacy IBM?)</td><td>Anyone</td>
+         </tr>
+         <tr>
+         <td><img src="images/ibm-48x32.png" alt="IBM"></td><td> IMM (Integrated Management Module)</td> <td> IMM2</td><td>Requires service contract</td>
+         </tr>
+         <tr>
+         <td><img src="images/fujitsu-48x32.png" alt="Fujitsu"></td> <td> iRMC (Integrated Remote Management Controller)</td> <td> iRMC S3</td><td>Anyone</td>
+         </tr>
+         <tr>
+         <td> <img src="images/sun-32x32.png" alt="Oracle/Sun"> </td> <td> ILOM (Integrated Lights Out Manager)</td> <td> ILOM 3</td><td>Requires service contract</td>
+         </tr>
+         </table>
+
+         </p>
+
+<p>
+<a href="http://downloadcenter.intel.com/Detail_Desc.aspx?DwnldID=17649">Source</a>
+for the S5520 Server Platforms - a dozen BMCs on various Intel boards
+- kudos to Intel!  (Presumably they have others out there, I was sent
+this link.)
+
+      </div>
+
+   </div>
+
+<p>
+
+<div class="row">
+
+	<div class="column grid_2"> 
+      <p class="styley p_box">Firmware Vendors</p>
+   </div>
+
+	<div class="column grid_10_padded">
+
+         <a name="fvendors">Firmware Vendors</a> - under the hood more
+         vendors lurk; there are only a few places that make BMCs,
+         or Baseboard Mgmt Controllers, the little computers that
+         implement IPMI; it's often created by 3 or more different
+         vendors - the chipmakers, the firmware software adder-onners,
+         and a big vendor like IBM, Dell, HP, etc., which all have their
+         own names for their flavor of IPMI.  I've put up some notes on
+         some of my findings when or if applicable.  It's interesting
+         to note the ubiquity of China in all of these.
+
+         <p>
+
+         <table class="padded" id="table_light">
+         <thead> <tr>
+            <th> <strong>Vendor</strong> </th>
+            <th> <strong>Manufactured in...</strong> </th>
+         </tr> </thead>
+
+         <tr>
+         <td>Nuvoton</td> <td> <a target="_blank" href="http://www.nuvoton.com/China/enu/AboutNuvoton/NuvotonWorldwide/locations/Pages/default.aspx">Hong Kong and Shenzhen </a></td>
+         </tr><tr>
+         <td>Emulex </td> <td> <a target="_blank" href="http://www.emulex.com/company/contact-us/international.html">... at least some presence in Beijing and Shanghai </a></td>
+         </tr><tr>
+         <td>ATEN </td> <td> <a target="_blank" href="http://www.aten.com.ro/about/about_branch.php">HQ in Taiwan, factories in Shenzhen. </a></td>
+         </tr><tr>
+         <td>Winbond </td> <td> <a target="_blank" href="http://www.winbond.com/hq/enu/AboutWinbond/WinbondWorldwide/locations/">Housed in Taiwan, also in Kunshan city, China. </a></td>
+         </tr><tr>
+         <td>Avocent </td> <td> <a target="_blank" href="http://avocent.com/About/Contacts_and_Locations/APAC.aspx">Beijing and Guangzhou </a></td>
+         </tr><tr>
+         <td>ASPEED </td> <td> <a target="_blank" href="http://www.aten.com/about/about_branch.php?cssflag=branch">HQ'd in Taiwan, factories/subsidiary in China</a></td> 
+         </tr><tr>
+         <td>Renesas </td> <td> <a target="_blank" href="http://am.renesas.com/contact/">Mainland China and Hong Kong </a></td>
+         </tr><tr>
+         </table>
+
+         </p>
+
+      </div>
+
+   </div>
+
+</div>
+
+<div class="row">
+	<div class="column grid_12" style="margin=150px">
+      <p style="float: right">
+   <!-- http://images.cheezburger.com/completestore/2011/12/17/7a98ec80-8eb5-4fa8-82b0-02dd8661398d.jpg -->
+         <a target="_blank" href="http://images.cheezburger.com/completestore/2011/12/17/7a98ec80-8eb5-4fa8-82b0-02dd8661398d.jpg"><img style="padding:1px; border:1px solid #021a40; background-color:#ccd1d8;" src="images/death2ears-200px.png"></a>
+      </p>
+   </div>
+</div>
+
+</body>
+</html>
+

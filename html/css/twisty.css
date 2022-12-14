@@ -1,0 +1,21 @@
+p.styley:first-letter {
+   text-transform: uppercase;
+}
+p.styley {
+   color: #424242;
+   font-family: "Adobe Caslon Pro", "Hoefler Text", Georgia, Garamond, Times, serif;
+   letter-spacing:0.1em;
+   text-align:center;
+   margin: 40px auto;
+   text-transform: lowercase;
+   line-height: 145%;
+   font-size: 14pt;
+   font-variant: small-caps;
+}
+.amp{
+   font-style: italic;
+   font-family: "Adobe Caslon Pro", "Hoefler Text", Palatino, "Palatino Linotype", serif;
+}
+div.main {
+   margin-left: 100px;
+}

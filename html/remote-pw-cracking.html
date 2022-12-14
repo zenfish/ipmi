@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>Cracking IPMI Passwords Remotely</title>
+
+   <!-- from the marvelous http://1kbgrid.com/ -->
+	<link href="/ipmi/css/grid.css" type="text/css" rel="stylesheet" media="screen"/>
+	<style type="text/css" media="screen">
+		body { margin: 10px 0 0 0; }
+		p.grid {
+			font:60px/100px Helvetica;
+			color: #000;
+			text-align: center;
+			border: 1px solid #000;
+			margin: 0 0 10px 0;
+		}
+   </style>
+
+   <!-- http://designshack.net/articles/css/5-simple-and-practical-css-list-styles-you-can-copy-and-paste/ -->
+   <link rel="stylesheet" href="/ipmi/css/hmenu.css" type="text/css">
+   <!-- http://twistedintellect.com/ -->
+   <link rel="stylesheet" href="/ipmi/css/twisty.css" type="text/css">
+
+   <!-- http://pythoughts.com/table-style-css/ -->
+   <link rel="stylesheet" href="/ipmi/css/table.css" type="text/css">
+
+   <!-- additional style hacks because I don't know css -->
+   <style>
+      a:link {color:#00009D; text-decoration: underline; }
+      a:visited {color:#4682B4; text-decoration: underline; }
+
+      .stylish {
+         color: #424242;
+         font-family: "Adobe Caslon Pro", "Hoefler Text", Georgia, Garamond, Times, serif;
+         letter-spacing:0.1em;
+         text-transform: lowercase;
+         font-size: 10pt;
+         font-variant: small-caps;
+      }
+
+      .p_box          { border: 1px solid #000; padding: 5px; background-color: #E6E6CE;}
+      .grid_3_padded  { width:240px; padding-left: 40px; }
+      .grid_6_padded  { width:510px; padding-left: 20px; }
+      .grid_7_padded  { width:600px; padding-left: 20px; }
+      .grid_10_padded { width:870px; padding-left: 20px; }
+
+      /* http://demo.marcofolio.net/css_lists/ */
+      #listx { color:#000; }
+      #listx ol li ol { list-style-image: url("images/xnested.png"); padding:10px 0 10px 18px; font-size:15px; }
+      #listx ol li ol li { color:#000; height:20px; margin-left:15px; }
+
+      /* http://hellodirty.com/post/30281359285/how-can-i-add-a-background-image-to-masonite-theme-i */
+      body {
+         font-family: Georgia, "Times New Roman", Times, serif;
+         background-image: url(http://subtlepatterns.com/patterns/vintage_speckles.png);
+         background-repeat: repeat; /* no-repeat/repeat-x/repeat-y */
+         background-position: 0 0; /* 100%/300px/left/center/right 100%/300px/top/center/bottom */
+      }
+	</style>
+
+   <style type="text/css" media="screen">
+      .section {
+         background: #fff;
+         color: #333;
+         font: 80%/1.2 Courier;
+         border: 1px solid #C0C0C0;
+         padding: 10px 20px;
+         overflow: hidden;
+      }  
+   </style> 
+   
+</head>
+
+<body>
+<div class="row">
+	<div class="column grid_12">
+      <nav>
+         <ul style="list-style-type: none;">
+            <li class="active navi"><a href="/ipmi">IPMI</a></li>
+            <li class="navi">       <a href="http://trouble.org">trouble</a></li>
+            <li class="navi">       <a href="/security">security</a></li>
+         </ul>
+      </nav>
+   </div>
+</div>
+
+<div class="row">
+	<div class="column grid_3"> <p> </p></div>
+	<div class="column grid_9"><p class="grid styley">File under... et tu, IPMI 2.0 specification?</p>
+</div>
+
+<div class="row">
+
+	<div class="column grid_2"> 
+      <p class="styley p_box">Leaky hashes in the RAKP Protocol</p>
+   </div>
+
+	<div class="column grid_10_padded">
+
+<p>
+
+<em>The short version: the RAKP protocol in the IPMI specification allows
+anyone to use IPMI commands to grab a HMAC IPMI password hash that can
+be cracked offline.  Longer explanation follows.  Here's a
+<a href="http://fish2.com/ipmi/tools/rak-the-ripper.pl">little Perl program</a> 
+that implements it.</em>
+
+
+<p>
+
+I guess you can file this in the ... "well, I don't think there are
+enough problems with IPMI with this new spec... what else can we do to
+sabatoge its security?"
+
+<p>
+
+Prior to IPMI 2.0 the IPMI specs would encapsulate IP packets using the
+Remote Management Control Protocol (RMCP.)  For 2.0 I can only surmise
+that they wanted to continue avoid sending the password over the network
+(at least, most, or some of the time, depending on options), so they
+introduce RMCP+, which offers "enhanced authentication" and extends IPMI
+over IP.
+
+<p>
+
+Thus RAKP - the RMCP+ Authenticated Key-Exchange Protocol - was born.
+According to the specification (page 161):
+
+<p>
+<blockquote>
+<em>
+RAKP-HMAC-SHA1 uses pre-shared symmetric keys and HMAC-based integrity
+algorithms to mutually authenticate a remote console to a given managed
+system and to generate pair-wise unique symmetric keying material that
+can be used with a number of integrity and confidentiality algorithms
+to provide protection for RMCP messages.
+</em>
+</blockquote>
+
+<p>
+
+That sounds pretty good - so how does this work?  As an illustration
+as to its underpinnings, an easy way to trigger RAKP is to use
+<em>ipmitool</em> like below (the "chassis identify" in the example simply
+asks the BMC to say what it's identify interval is) - you might note that
+the password given ("fluffy-wuffy") is invalid, but it doesn't matter,
+as we're just starting up RAKP, we're not interested in finishing it,
+and ipmitool requires some password, even if it's wrong:
+
+<p>
+
+<div class="section">
+$ <strong>ipmitool -I lanplus -v -v -v -U ADMIN -P fluffy-wuffy -H 10.0.0.1 chassis identify</strong><br />
+</div>
+
+<p>
+
+This command kicks off a back-n-forth sequence with a remote BMC; for
+instance, on my iMac, it looks like this:
+
+<p>
+
+<table class="padded" id="table_light">
+   <thead><tr>
+      <th><strong>sequence #</strong></th>
+      <th><strong>Client sends</strong></th>
+      <th><strong>BMC responds with</strong></th>
+   </tr></thead>
+
+   <tr>
+      <td> 1 </td> <td> get channel auth request </td> <td></td>
+   </tr>
+   <tr>
+      <td> 2 </td> <td> </td> <td> get channel auth response </td>
+   </tr>
+   <tr>
+      <td> 3 </td> <td> RMCP+ open session request </td> <td></td>
+   </tr>
+   <tr>
+      <td> 4 </td> <td> </td> <td>open session response</td>
+   </tr>
+   <tr>
+      <td> 5 </td> <td> RAKP message 1 </td> <td></td>
+   </tr>
+   <tr>
+      <td> 6 </td> <td> </td> <td>RAKP message 2</td>
+   </tr>
+</table>
+
+<p>
+
+I show only two of the four RAKP steps to a successful negotation; this
+is because all we need is the RAKP message 2 contents.  RAKP was designed
+thinking that the BMC and the client share a secret - the password - and
+that the client can validate the HMAC and see if it's the right server
+they're talking to.  For better or worse it also gives an attacker all
+they need to crack the password.  And in message 2 the BMC sends our
+target HMAC.
+
+<p>
+
+Looking at the output of ipmitool you'll eventually see a few lines that
+look something like this:
+
+<pre>
+   [...]
+   rakp2 mac input buffer (63 bytes)
+   a4 a3 a2 a0 4c 7f fb df ee a4 a3 96 b1 d0 7e 27
+   cd ef 32 ae 66 cf 87 b9 aa 3e 97 ed 5d 39 77 4b
+   bc 8a c5 a9 e2 da 1d d9 35 30 30 31 4d 53 00 00
+   00 00 00 00 00 00 00 00 14 05 41 44 4d 49 4e
+   [...]
+</pre>
+
+The input buffer is most of what is used to calculate the HMAC.  In order,
+these bytes are the session IDs of the remote console (4) and managed
+system (4), the remote console's random number (16), the managed system's
+random number (16), the managed system's GUID (16), the priv level (1),
+the length of the user name (1), and finally the user name itself.
+
+<p>
+
+The HMAC is created with that buffer and the password - or password guess -
+which may be compared with the key exchange auth code that the BMC has also
+sent you in your exchange:
+
+<pre>
+   [...]
+   Key exchange auth code [sha1] : 0xede8ec3caeb235dbad1210ef985b1b19cdb40496
+   [...]
+</pre>
+
+At this point you're left with a very easy way to crack a password. Simply
+take the input buffer above along with a password guess, create a HMAC
+- defined in RFC 2104 and is implemented as a library in most popular
+scripting languages - and compare it to what the BMC sent.  If they match,
+you've guessed right.
+
+<p>
+
+To be fair to engage in RAKP-ness you do need a valid IPMI account name
+on the remote system, but requests via RAKP 2 are also kind enough to
+tell you if an account is valid or not (and, remember, vendors always
+have default accounts, and frequently they're not removable.)
+
+<p>
+
+I did a quick, unscientific scan of a bit over 1000 hosts that would talk
+to me on the Internet, and a bit over 5% of them had vendor default passwords
+enabled.  Another 5-10% of accounts were easily crackable with a modest sized
+dictionary.  None of that is very surprising, of course, but being able to
+grab password hashes from a system is unforgivable.  I might do some further
+looking around; presumably others might as well.
+
+<p>
+
+On the plus side, no one else can disable this feature either, as it's part
+of the IPMI specification, so the playing field is level.
+
+<p>
+
+Even more so now... keep those BMCs behind firewalls, and block frickin'
+UDP port 623!
+
+<p>
+
+Postcript. FYI, it turns out that a little delay between requests can help
+with some systems that have a hamster-driven BMC.  I put a delay option
+(-D) in my little <a href="http://fish2.com/ipmi/tools/rak-the-ripper.pl">perl program</a> - 
+a delay of 3 ("-D 3") seems to work well.
+
+<p>
+
+<em>Special thanks to out to Jarrod B Johnson (<jbjohnso@us.ibm.com>), whose
+implemention of RAKP for the xCAT project (http://xcat.sourceforge.net/)
+and emailed conversation was fundamental to furthering my understanding
+of the issue.</em>
+
+<p>
+
+<hr>
+
+p.s. It looks like the amazing hashcat and john the ripper password crackers now
+support this type of hash... 20M+ passwords/sec... pretty amazing,
+so use their stuff!
+
+</div> </div>
+
+</body> </html>
+

@@ -1,0 +1,28 @@
+#table_light {
+   background-color: #f5f5f5;
+   padding: 5px;
+   border-radius: 5px;
+   -moz-border-radius: 5px;
+   -webkit-border-radius: 5px;
+   border: 1px solid #ebebeb;
+}
+#table_light td, #table_light th {
+   padding: 1px 5px;
+}
+#table_light thead {
+   background-color: #E6E6E6;
+   font: normal 15px Helvetica Neue,Helvetica,sans-serif;
+   text-shadow: 0 1px 0 white;
+   color: #999;
+}
+#table_light th {
+   text-align: left;
+   border-bottom: 1px solid #fff;
+}
+#table_light td {
+   font-size: 14px;
+}
+#table_light td:hover {
+   background-color: #fff;
+}
+

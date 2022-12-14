@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>IPMI test bed</title>
+
+   <!-- from the marvelous http://1kbgrid.com/ -->
+        <link href="css/grid.css" type="text/css" rel="stylesheet" media="screen"/>
+        <style type="text/css" media="screen">
+                body { margin: 10px 0 0 0; }
+                p.grid {
+                        font-family: Georgia, "Times New Roman", Times, serif;
+                        color: #000;
+                        margin: 0 0 10px 0;
+                }
+   </style>
+
+   <!-- http://designshack.net/articles/css/5-simple-and-practical-css-list-styles-you-can-copy-and-paste/ -->
+   <link rel="stylesheet" href="css/hmenu.css" type="text/css">
+   <!-- http://twistedintellect.com/ -->
+   <link rel="stylesheet" href="css/twisty.css" type="text/css">
+
+   <!-- http://pythoughts.com/table-style-css/ -->
+   <link rel="stylesheet" href="css/table.css" type="text/css">
+
+   <style>
+      /* http://hellodirty.com/post/30281359285/how-can-i-add-a-background-image-to-masonite-theme-i */
+      body {
+         background-image: url(http://subtlepatterns.com/patterns/vintage_speckles.png);
+         background-repeat: repeat; /* no-repeat/repeat-x/repeat-y */
+         background-position: 0 0; /* 100%/300px/left/center/right 100%/300px/top/center/bottom */
+      }
+   </style>
+
+</head>
+<body>
+
+<div class="row">
+        <div class="column grid_12">
+      <nav>
+         <ul style="list-style-type: none;">
+            <li class="active navi"><a href="/ipmi">IPMI</a></li>
+            <li class="navi">       <a href="http://trouble.org">trouble</a></li>
+            <li class="navi">       <a href="/security">security</a></li>
+         </ul>
+      </nav>
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2"><p></p></div>
+   <div class="column grid_6">
+      <p style="margin-top: 20px; margin-bottom: 0px; text-align: center; border: 1px solid #000;" class="grid styley">My little test lab</p>
+   </div>
+</div>
+
+<div class="row">
+
+
+<div class="row">
+   <div class="column grid_12">
+   
+   <p style="margin-top: 20px;" class="grid">
+
+   I didn't spend a lot of time trying to break into the BMCs, as I'm
+   not a pen-tester.  The Supermicro (SM) simply gave me a root prompt -
+   I turned on IPMI, logged in via SSH, and got the "#" sign.  The Dell
+   I'll discuss later; I'm currently waiting on Dell on fixing the issue,
+   but I found it simple to get root onto the BMC.  I wasn't able to get root
+   on the HP, but I'm confident that someone more skilled could do it.
+   I'm including summary results of a Nessus scan - no super-serious
+   problems, although the SM had the most findings.  I look at the
+   #'s of issues as an indication to the general maturity of a server -
+   lots of little things probably means more problems that are waiting to
+   be found.  HP took some care in locking down their BMC at this level,
+   at least.  We'll see if their security stands up - all it takes is
+   one bug.
+
+   </p>
+
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_12">
+
+		<table class="padded" id="table_light">
+		<thead><tr>
+		<th><strong>Vendor</strong></th>
+		<th><strong>IPMI flavor</strong></th>
+		<th><strong>BMC</strong></th>
+      <th><strong>Cipher 0 enabled?</strong></th>
+      <th><strong>Got root?</strong></th>
+		<th>Output of "uname -a" <strong>on the BMC</strong></th>
+		<th>Nessus Results</th>
+		</tr></thead>
+		
+		<tr>
+		<td> Dell R710</td>
+		<td> iDRAC 6 Express/Enterprise</td>
+		<td> WPCM450</td>
+      <td> yes </td>
+		<td> yes </td>
+		<td> [WPCM450 ~]$ <strong>uname -a </strong><br />
+		Linux idrac-5XT3GQ1 2.6.23.1 #1 PREEMPT Sat Mar 12 20:17:18 UTC 2011 armv5tejl unknown </td>
+      <td>
+         High 0<br />
+         Med 3<br />
+         Low 0<br />
+         Info 30<br />
+      </td>
+
+		</tr>
+
+		<tr>
+		<td> HP ML150 G6</td>
+		<td> iLO 3</td>
+		<td> ServerEngines II</td> 
+      <td> yes </td>
+		<td> no </td>
+		<td> n/a </td>
+      <td>
+         High 0<br />
+         Med 0<br />
+         Low 2<br />
+         Info 12<br />
+      </td>
+		</tr>
+		
+		<tr>
+		<td> Silicon Mechanics with a Supermicro X8DTU-F motherboard</td>
+		<td> Supermicro Intelligent Management</td>
+		<td> WPCM450</td>
+      <td> yes </td>
+		<td> yes </td>
+		<td> [WPCM450 ~]$ <strong>uname -a</strong><br />
+		Linux SMC0025906E33C3 2.6.24-ami #1 Wed Dec 22 10:50:27 PST 2010 armv5tejl unknown</td>
+		<td> 
+         High 0<br />
+         Med 8<br />
+         Low 1<br />
+         Info 45<br />
+      </td>
+
+		</tr>
+		
+		</table>
+		
+   </div>
+
+<div style="margin-top: 20px;" class="row">
+   <div class="column grid_12">
+      <p class="grid">
+      I found it interesting to note that 2 of the 3 I tested have the Winbond
+      WCPM450 ARM-based BMC. There's a lot of mixing and matching of firmware vendors.
+      Here's a little note discussing the partnership of
+      <a href="http://www.winbond.com/hq/enu/NewsAndEvents/News/ProductAndTechnology/20070402en-01.htm">Winbond & AMI</a>
+      (aka American Megatrends) on the firmware of the chip.
+      </p>
+   </div>
+</div>
+
+</body>
+</html>
+		

@@ -1,0 +1,438 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <title>IPMI FAQ</title>
+
+   <!-- from the marvelous http://1kbgrid.com/ -->
+        <link href="css/grid.css" type="text/css" rel="stylesheet" media="screen"/>
+        <style type="text/css" media="screen">
+                body { margin: 10px 0 0 0; }
+                p.grid {
+                        font-family: Georgia, "Times New Roman", Times, serif;
+                        color: #000;
+                        margin: 0 0 10px 0;
+                }
+   </style>
+
+   <!-- http://designshack.net/articles/css/5-simple-and-practical-css-list-styles-you-can-copy-and-paste/ -->
+   <link rel="stylesheet" href="css/hmenu.css" type="text/css">
+   <!-- http://twistedintellect.com/ -->
+   <link rel="stylesheet" href="css/twisty.css" type="text/css">
+
+   <!-- http://pythoughts.com/table-style-css/ -->
+   <link rel="stylesheet" href="css/table.css" type="text/css">
+
+   <style>
+      /* http://hellodirty.com/post/30281359285/how-can-i-add-a-background-image-to-masonite-theme-i */
+      body {
+         background-image: url(http://subtlepatterns.com/patterns/vintage_speckles.png);
+         background-repeat: repeat; /* no-repeat/repeat-x/repeat-y */
+         background-position: 0 0; /* 100%/300px/left/center/right 100%/300px/top/center/bottom */
+      }
+   </style>
+
+</head>
+<body>
+
+<div class="row">
+        <div class="column grid_12">
+      <nav>
+         <ul style="list-style-type: none;">
+            <li class="active navi"><a href="/ipmi">IPMI</a></li>
+            <li class="navi">       <a href="http://trouble.org">trouble</a></li>
+            <li class="navi">       <a href="/security">security</a></li>
+         </ul>
+      </nav>
+   </div>
+</div>
+
+<div class="row">
+   <div class="column grid_2"><p></p></div>
+   <div class="column grid_7">
+      <p style="margin-top: 20px; margin-bottom: 0px; text-align: center; border: 1px solid #000;" class="grid styley">Anticipatory FAQ (version .01; updated 1/26/13)</p>
+
+
+   </div>
+</div>
+
+<div class="row">
+
+
+<div class="row">
+   <div class="column grid_12">
+   
+   <p style="margin-top: 20px;" class="grid">
+
+    <table class="padded" id="table_light">
+       <thead> <tr>
+          <th> <strong>Question</strong> </th>
+          <th> <strong>Answer</strong> </th>
+       </tr> </thead>
+
+    <tbody>
+        <tr>
+            <td valign="top">
+                <p>
+                    <strong>Basics</strong>
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td valign="top">
+                <p>
+                    What is IPMI?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                IPMI is an acronym for a protocol:
+                the <strong>Intelligent</strong><strong>
+                </strong><strong>Platform</strong><strong> </strong>
+                <strong>Management</strong><strong>
+                </strong><strong>Interface</strong>. It helps manage
+                what is sometimes known as Out-of-Band or
+                Lights-Out communication and is typically implemented
+                by a chip or small set of chips on the motherboard
+                of modern servers. Pure IPMI is usually implemented
+                as a network service that runs on UDP port 623 and
+                often runs on a dedicated Ethernet port on the server
+                (sometimes labeled "management" or something similar.)
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    IPMI version 1.0, 1.5, 2.0, what's the difference?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    I'm not sure if anyone still uses version 1, but
+                    probably... it doesn't support networks, so....
+                    version 1.5 added real networks and is what
+                    everything supports - it was brought
+                    out in 2001.  Version 2.0 has been out a few years
+                    now; for this discussion, it basically added some
+                    bits of security and encryption.  They didn't do
+                    a very good job.  I think just about everyone that
+                    speaks 2.0 can still fall back to the plain, ol',
+                    unencrypted 1.5 version as well.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I use Dell's iDRAC, or
+                    HP's iLO, or IBM's RSA, or&#8230;
+                    name-your-vendor's-name-for-their-lights-out-OOB-management-stuff.
+                    Does any of this affect me?
+
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    Yes. Almost no one runs simply vanilla IPMI -
+                    it's the vendor add-ons, some of which are fairly
+                    universal (like virtual media), which are a large
+                    part of the problem.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    Why do I care?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    You don't have to. I lay out a rather laborious
+                    rationale why I believe that the confluence of the
+                    IPMI protocol, vendor add-ons and features that
+                    live on top of IPMI, and how system administrators
+                    and data center folks use it cause a rather nasty
+                    problem. The paper details this at length, the 1
+                    page brief makes fantastical claims with no support.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I haven't even heard of this, you're making it up.
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    Not me! Well, maybe some of it. But you can see many
+                    articles, tools and libraries that are out there,
+                    just not about security for whatever reason. Four
+                    very good quality IPMI software packages: freeipmi,
+                    ipmitools, ipmiutils, and openipmi; in addition to
+                    the software they have some excellent write-ups and
+                    details about the world of IPMI. They're all worth
+                    checking out:
+                </p> <ul type="disc">
+                    <li>
+                        <a
+                        href="http://openipmi.sourceforge.net/">OpenIPMI</a>
+                    </li> <li>
+                        <a
+                        href="http://www.gnu.org/software/freeipmi/">FreeIPMI</a>
+                    </li> <li>
+                        <a
+                        href="http://ipmiutil.sourceforge.net/home.htm">IPMIutil</a>
+                    </li> <li>
+                        <a
+                        href="http://ipmitool.sourceforge.net/">IPMItool</a>
+                    </li>
+                </ul> <p>
+                    There's a <a
+                    href="http://ipmiutil.sourceforge.net/docs/ipmisw-compare.htm">really nice comparison</a> 
+                    of all of them on
+                    Sourceforge. Just don't try to find much on
+                    "IPMI security" yet, there ain't much out there
+                    yet. There's starting to be *some* things, though.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    Where can I learn more about IPMI?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    I've put together a little set of references and
+                    such at:
+                </p> <p>
+                    <a
+                    href="http://fish2.com/ipmi/">http://fish2.com/ipmi/</a>
+                </p> <p>
+                    Searching Google/Bing/Yahoo/etc. will get you
+                    lots more.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    Why did you write this, and whom do you work for so
+                    I can complain?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    I did this on my own time and network, so you really
+                    can't blame anyone but me, sorry.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    Baskerville font? Kind of old fashioned, eh, old man?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    Font of the <a
+                    href="http://opinionator.blogs.nytimes.com/2012/08/08/hear-all-ye-people-hearken-o-earth/">champions</a>.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    <strong>What runs IPMI? </strong>
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I'm worried about my laptop/desktop/non-server,
+                    what should I do?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    To my knowledge this affects servers only. See
+                    your vendor documentation to see if IPMI is on your
+                    computer or not.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I have model XYZ of vendor ABC, does this affect me?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    You'll have to refer to your documentation and vendor
+                    to see if IPMI is on your system. There are many,
+                    many, many types of servers and manufacturers out
+                    there; many, if not most, manufactured in the last
+                    decade to 15 years (as of 2013) will have IPMI on
+                    the motherboard.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I run my stuff on the cloud (public, private,
+                    whatever) - should I be worried?
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    Virtual servers, to my knowledge, are not
+                    affected. The physical servers that they run on
+                    could be running it, just like any other server,
+                    and could affect any VMs running on it, of course.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I don't even have my IPMI management Ethernet
+                    jack plugged in, and IPMI isn't enabled in the BIOS,
+                    take that IPMI, try to talk to my network now!
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    All the versions of IPMI I've seen can talk just fine
+                    piggybacked on any generic Ethernet interface; the
+                    specifically labeled ones are for convenience so you
+                    don't plug an IPMI port into your main network. Indeed
+                    the net seems full of people complaining of various
+                    versions of IPMI grabbing the main Ethernet interface
+                    when they don't want it to. If your server is plugged
+                    in and connected to the network, even if powered down,
+                    IPMI can be running.
+                    <p>
+                    BIOS settings can be changed by a variety of tools,
+                    depending on the vendor (IPMI itself can facilitate
+                    changing them, but that's a chicken-or-egg kind
+                    of thing.) I'd say if it's off in your BIOS and no
+                    one has access to the server you're modestly safe.
+                    But it's still sitting there, waiting... ;)
+                    <p>
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I've disabled IPMI on all my servers - take that,
+                    IPMI, try to talk now!
+                </p>
+            </td>
+            <td valign="top">
+                <p>
+                    As it turns out IPMI is pretty difficult to turn off
+                    permanently. You can turn it off via software, but it
+                    can also be turned on via software.  It's probably
+                    worse thinking its off when someone is using it to
+                    attack or to spy on you.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    I've a zillion computers in my
+                    datacenter/organization. How do I know which have
+                    IPMI?
+                </p>
+            </td> <td valign="top">
+                <p>
+                    The short answer is&#8230; it can be hard to figure
+                    out what actually runs IPMI. I've started on a scanner
+                    that tries to answer this question. The bootup
+                    sequence on a computer will often show a BIOS or
+                    UEFI prompt that allows some low-level configuration;
+                    you might search there. Or search the web.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    <strong>IPMI and security </strong>
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    Shirley you jest - they don't *really* keep the IPMI
+                    password in clear text, do they?
+                </p>
+            </td> <td valign="top">
+                <p>
+                    Yes, really. Well, sort of.  Some definitely do, and
+                    some hide it or perhaps encrypt it and do on-the-fly
+                    decryption of the key when it's really, really needed.
+                    Everyone does it a bit differently, since there's
+                    no requirement to store it in certain ways. They do
+                    this because the specification demands that the BMC
+                    can pull out the actual, clear-text password for authentication.
+                    Don't ask me who thought of that.
+
+                    <p>
+
+                    And once it's been monkeyed around with it's hard
+                    to scrub it clear from memory.  <p> In iDRAC 6 Dell
+                    stored the the hashed passwords in a file, but the
+                    password was easily recoverable by simply looking
+                    in memory (/dev/mem.)
+
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    You claim that the IPMI password can be compromised if
+                    you have compromised the server it runs on - can you
+                    back this up with any sort of <strong>proof?</strong>
+                </p>
+            </td> <td valign="top">
+                <p>
+                    Yes. I've <a
+                    href="http://fish2.com/ipmi/how-to-get-password.html">enumerated</a>
+                    some of the ways; there are more. I've been able
+                    to do it very easily on two out of the 3 servers
+                    I have at home (a Dell iDRAC 6 and a Supermicro) -
+                    not a big sample, I realize. Other smarter, trickier,
+                    and wilier people will find more ways.
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    <strong>The Truth</strong>
+                </p>
+            </td>
+        </tr> <tr>
+            <td valign="top">
+                <p>
+                    No one has really asked you any of these questions,
+                    have they?  You're just trying to make it all sound
+                    important by having an un-FAQ!
+                </p>
+            </td> <td valign="top">
+                <p>
+                    Well... umm... no, no one has asked me any of these
+                    questions.  But they might. And I'll be right there
+                    to... well, probably write up some real answers to
+                    real questions and put them here.  <p> But hey, wait
+                    a second, I don't have to take this kind of abuse,
+                    I can get it at home from my cats.  So no more
+                    answering your... well my... questions!  So there.
+                </p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+   </div>
+</div>
+
+</body>
+</html>
+
+
