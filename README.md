@@ -6,7 +6,7 @@ out to be fairly interesting problem on its own, at least to me.
 
 <h4>IPMI web site</h4>
 
-The papers n things from fish2.com/ipmi
+The papers n things from <span color=red">http://fish2.com/ipmi</span>
 
 <a href="html/">
 
