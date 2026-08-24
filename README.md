@@ -4,6 +4,10 @@ do the usual detect, get data, and audit sort of cycle.  Each of these turned
 out to be fairly interesting problem on its own, at least to me.
 </p>
 
+**BTW/FYI ** - I released a new tool to explore IPMI - https://github.com/zenfish/zipmi -
+as well as a set of Qemu recipies/images/etc. to run BMCs as virtual systems under
+Qemu at https://github.com/zenfish/zbmc.
+
 <h4>IPMI web site</h4>
 
 The papers n things from http://fish2.com/ipmi
